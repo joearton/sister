@@ -138,10 +138,3 @@ class SisterAPI(SisterIO, SisterTemplate):
         response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)        
         return response
     
-
-api = SisterAPI()
-res = api.get_data('/referensi/sdm', False, nidn="0219128601")
-res = res['data'][0]
-id_sdm = res['id_sdm']
-
-print(id_sdm)

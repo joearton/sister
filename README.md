@@ -2,7 +2,7 @@
 Simple Sister API client (Dikti/Kemdikbudristek) using Python.
 
 ## Sister Credential Preparation
-1. Get your developer credential from akses.ristekdikti.go.id.
+1. Get your developer credential from **akses.ristekdikti.go.id**.
 2. In there, create new user with role "Developer".
 3. Open your sister, and syncronize to get new "developer user".
 4. Login to your sister using developer credential.
@@ -15,3 +15,12 @@ Simple Sister API client (Dikti/Kemdikbudristek) using Python.
 
 ## Official API Guide
 https://sister.kemdikbud.go.id
+
+## Basic Use
+```
+from sister import SisterAPI 
+
+api = SisterAPI()
+res = api.get_data('/referensi/sdm')
+print(res)
+```
