@@ -16,7 +16,8 @@ Simple Sister API client (Dikti/Kemdikbudristek) using Python.
 ## Official API Guide
 https://sister.kemdikbud.go.id
 
-## Basic Use
+## How to Use
+### Basic Use
 ```
 from sister import SisterAPI 
 
@@ -24,8 +25,11 @@ from sister import SisterAPI
 api = SisterAPI()
 res = api.get_data('/referensi/sdm')
 print(res)
+```
 
-# want to get available paths?
+### See Available Paths?
+
+```
 paths = api.spec.get_paths()
 for path in paths:
     print(path)
