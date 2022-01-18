@@ -1,6 +1,4 @@
 import json
-
-from debugpy import connect
 from library.connector import SisterSession, BearerAuth
 from library.io import SisterIO
 from library.api_spec import SisterSpec
