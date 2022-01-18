@@ -19,8 +19,11 @@ if not os.path.isfile(CONFIG_FILE):
     os.abort()
 
 
-def to_json(text):
-    json_object = json.loads(text)
+def is_json(text):
+    try:
+        json_object = json.load(text)
+    except:
+        json_object = None
     return json_object
 
 
@@ -45,7 +48,7 @@ class SisterIO:
         obj = {}
         if os.path.isfile(filename):
             with open(filename, 'r') as reader:
-                obj = to_json(reader.read())
+                obj = json.loads(reader.read())
         return obj
 
 
@@ -64,6 +67,7 @@ class SisterAPI(SisterIO):
         self.session = requests.session()
         self.config  = self.read_config()
         self.api_key = self.read_api_key()
+        self.check_config()
 
 
     def read_config(self):
@@ -84,6 +88,27 @@ class SisterAPI(SisterIO):
         self.api_key = api_key
 
 
+    def check_config(self):
+        # check sister URL for 7 seconds
+        try:
+            response = self.session.get(self.get_ws_url(), timeout=7)
+        except requests.exceptions.ConnectionError:
+            raise requests.exceptions.ConnectionError('Connection error, Check your Sister URL')
+        try:
+            response = self.session.get(self.get_ws_url(), timeout=7)
+        except requests.exceptions.ConnectTimeout:
+            raise requests.exceptions.ConnectTimeout('Connection error, Check your Sister URL')
+
+
+
+    def get_ws_url(self):
+        ws_url = self.config['sister_url']
+        ws_version = self.config['api_version']
+        if self.config['use_sandbox']:
+            return f'{ws_url}/ws.php/{ws_version}'
+        return f'{ws_url}/ws-sandbox.php/{ws_version}'
+
+
     def request_api_key(self):
         auth_data = {
             "username"      : self.config['username'],
@@ -94,52 +119,62 @@ class SisterAPI(SisterIO):
             "Accept"        : "application/json",
             "Content-Type"  : "application/json"
         }
-        token = ""
-        get_token = self.session.post("{0}/authorize".format(
-            self.config['sister_url']), json=auth_data, headers=headers)
-        if get_token.status_code == 200:
-            json_object = get_token.json()
-            if "token" in json_object:
-                token = json_object['token']
-                self.update_api_key(token=token, last_request='')
-        return token
+        api_key = self.session.post("{0}/authorize".format(
+            self.get_ws_url()), json=auth_data, headers=headers)
+        if api_key.status_code == 200:
+            if is_json(api_key):
+                api_key = api_key.json()
+                if "token" in api_key:
+                    self.update_api_key(token=api_key['token'], last_request='')
+            else:
+                api_key = self.get_res_template()
+        return api_key
 
 
-    def get_data(self, scope, **kwargs):
+    def get_res_template(self):
         response = {
             'status'    : 'error',
             'message'   : 'Error occured',
             'detail'    : '',
             'data'      : {},
         }
-        scope_url = "{0}/{1}".format(self.config['sister_url'], scope)
+        return response
+        
+
+    def parse_scope_url(self, scope, query):
+        scope_url = f"{self.get_ws_url()}/{scope}"
         counter   = 0
-        for key, value in kwargs.items():
+        for key, value in query.items():
             if counter == 0:
                 scope_url += '?'
             else:
                 scope_url += '&'
             scope_url += f'{key}={value}'
             counter += 1
-        # when request is to get all data
+        return scope_url
+
+
+    def get_data(self, scope, **kwargs):
+        response = self.get_res_template()
+        if not self.api_key:
+            return response
+        scope_url = self.parse_scope_url(scope, kwargs)
         result = self.session.get(scope_url, auth=BearerAuth(self.api_key['token']))
-        if to_json(result.text):
+        if is_json(result.text):
             json_object = result.json()
-            if result.status_code in [200, 204]:
+            if 'message' in json_object:
+                if result.status_code in ['401']:
+                    self.request_api_key()
+                response['message'] = json_object['message']
+                response['detail'] = json_object['detail']
+            else:
                 response['status'] = True
                 response['message'] = 'Success executed'
                 response['data'] = json_object
-            elif result.status_code in ['401']:
-                self.request_api_key()
-                self.get_data(scope, kwargs)
-            else:
-                if json_object['message']:
-                    response['message'] = json_object['message']
-                    response['detail'] = json_object['detail']
         return response
 
 
 
 api  = SisterAPI()
 data = api.get_data('referensi/sdm')
-print(data['data'])
+print(data)

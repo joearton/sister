@@ -1,5 +1,7 @@
 {
-    "sister_url"    : "https://your-sister-url/ws.php/1.0",
+    "sister_url"    : "https://your-sister-url.ac.id",
+    "use_sandbox"   : true,
+    "ws_version"    : "1.0",
     "username"      : "Sister Developer Username",
     "password"      : "Sister Developer Password",
     "id_pengguna"   : "Sister Developer id_pengguna"
