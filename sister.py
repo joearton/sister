@@ -126,9 +126,9 @@ class SisterAPI(SisterIO, SisterTemplate):
         if not self.api_key:
             api_key = self.request_api_key()
             self.api_key = self.read_api_key()
+            # get fresh api key
             if not api_key['status'] == True:
                 return api_key
-            # get fresh api key
 
         method, attr = self.spec.get_path_method_and_attr(path)
         path_url  = self.parse_path_url(path, kwargs)
