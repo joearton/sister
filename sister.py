@@ -116,7 +116,7 @@ class SisterAPI(SisterIO, SisterTemplate):
         return response
             
 
-    def get_data(self, path, fresh_api_key, **kwargs):
+    def get_data(self, path, fresh_api_key=False, **kwargs):
         response = self.response_template()
         # check whether the config is valid or not
         if not self.valid_config:
@@ -125,10 +125,10 @@ class SisterAPI(SisterIO, SisterTemplate):
         # check whether authorization is success or not
         if not self.api_key:
             api_key = self.request_api_key()
+            self.api_key = self.read_api_key()
             if not api_key['status'] == True:
                 return api_key
             # get fresh api key
-            self.api_key = self.read_api_key()
 
         method, attr = self.spec.get_path_method_and_attr(path)
         path_url  = self.parse_path_url(path, kwargs)
