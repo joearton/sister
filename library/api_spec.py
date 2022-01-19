@@ -1,7 +1,7 @@
 from asyncore import read
 import yaml
 import os
-from library.settings import *
+from settings import *
 
 
 API_SPEC_FILE = os.path.join(CONFIG_DIR, 'api_spec.yaml')

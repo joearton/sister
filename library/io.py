@@ -2,7 +2,7 @@ import requests
 import json
 import os
 import validators
-from library.settings import *
+from settings import *
 from datetime import datetime, timedelta 
 
 

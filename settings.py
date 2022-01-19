@@ -1,6 +1,6 @@
 import os
 
-BASE_DIR     = os.getcwd()
+BASE_DIR     = os.path.dirname(__file__)
 CACHE_DIR    = os.path.join(BASE_DIR, '.cache')
 CONFIG_DIR   = os.path.join(BASE_DIR, 'config')
 CONFIG_FILE  = os.path.join(CONFIG_DIR, 'config.json')
@@ -12,7 +12,7 @@ if not os.path.exists(CACHE_DIR):
 
 
 if not os.path.isfile(CONFIG_FILE):
-    print('Config file available, create it in '. CONFIG_FILE)
+    print('Config file unavailable, create it in ', CONFIG_FILE)
     os.abort()
 
 
