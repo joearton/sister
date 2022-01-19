@@ -13,9 +13,8 @@ class WebService(SisterIO, SisterTemplate):
         self.session = SisterSession()
         self.config  = self.read_config()
         self.api_key = self.read_api_key()
-        self.use_cache = True
+        self.caching_system = True
         self.spec = SisterSpec()
-        self.spec.initialization()
 
 
     def request_api_key(self):
@@ -84,19 +83,16 @@ class WebService(SisterIO, SisterTemplate):
 
 
     def get_from_cache(self, path):
-        cache_filename = os.path.join(CACHE_DIR, f"{self.path_as_io(path)}.json")
-        if os.path.isfile(cache_filename):
-            with open(cache_filename, 'r') as reader:
-                json_object = json.load(reader)
-                return json_object
+        if self.caching_system:
+            cache_filename = os.path.join(CACHE_DIR, f"{self.path_as_io(path)}.json")
+            if os.path.isfile(cache_filename):
+                with open(cache_filename, 'r') as reader:
+                    json_object = json.load(reader)
+                    return json_object
 
 
     def get_data(self, path, fresh_api_key=False, **kwargs):
         response = self.response_template()
-        # check whether the config is valid or not
-        if not self.valid_config:
-            response['message'] = 'Config or API is not valid'
-            return response
         # check whether authorization is success or not
         if not self.api_key:
             api_key = self.request_api_key()

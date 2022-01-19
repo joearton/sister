@@ -8,17 +8,19 @@ from settings import *
 API_SPEC_FILE = os.path.join(CONFIG_DIR, 'api_spec.yaml')
 
 
+def get_specs():
+    spec = None
+    with open(API_SPEC_FILE, 'r') as reader:
+        spec = yaml.safe_load(reader)
+    return spec
+
+
 class BaseSpec:
+    # remember about memory use
+    get_specs = get_specs()
 
-    def initialization(self):
-        self.api_spec = self.get_specs()
-
-
-    def get_specs(self):
-        spec = None
-        with open(API_SPEC_FILE, 'r') as reader:
-            spec = yaml.safe_load(reader)
-        return spec
+    def __init__(self):
+        self.api_spec = self.get_specs
 
 
     def get_spec(self, name):

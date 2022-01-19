@@ -18,12 +18,7 @@ class SisterAPI(WebService):
         # note that / in path become _ in function
         for path in self.paths:
             func_name = re.sub(r"\/", '_', re.sub(r"[/]{([^{}]+)}", '', path))
-            params = self.spec.get_path_params(path)
-            kwargs = {}
-            for param_dict in params:
-                if param_dict.get('in'):
-                    kwargs[param_dict.get('name')] = {'required': param_dict.get('required'), 'value': ''}
-            self.add_get_function(f'get{func_name}', path, **kwargs)
+            self.add_get_function(f'get{func_name}', path)
 
 
     def add_to_class(self, name, content):
@@ -33,17 +28,23 @@ class SisterAPI(WebService):
             setattr(self, name, content)
 
 
+    def check_required_param(self, path):
+        params = self.spec.get_path_params(path)
+        required_params = list(filter(lambda x: print(x), params))
+        required_params = list(filter(lambda x: x['required'] == True, required_params))
+        return [required_params, params]
+
+
     def master_get_function(self, path, **kwargs):
-        parsed_kwargs = {}
+        required_params, params = self.check_required_param(path)
         for key, value in kwargs.items():
+            pass
+            '''
             if 'required' in value:
                 if value.get('required') and len(value.get('value')) == 0:
                     raise NameError(f'Require argument {list(kwargs.keys())}\n\nARGUMENTS HINT: {self.spec.get_path_params(path)}')
-                else:
-                    parsed_kwargs[key] = value['value']
-        if not parsed_kwargs:
-            parsed_kwargs = kwargs
-        res = self.get_data(path, **parsed_kwargs)
+            '''
+        res = self.get_data(path, **kwargs)
         return self.parse_response(res, as_json=self.reply_as_json)
 
 
