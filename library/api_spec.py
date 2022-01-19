@@ -1,4 +1,5 @@
 from asyncore import read
+from sys import path
 import yaml
 import os
 from settings import *
@@ -68,10 +69,10 @@ class SisterSpec(BaseSpec):
 
     def get_path(self, path_name) -> tuple:
         paths = self.get_paths()
-        paths = filter(lambda x: x[0] == path_name, paths.items())
+        paths = list(filter(lambda x: x[0] == path_name, paths.items()))
         path  = None
-        if paths:
-            path = list(paths)[0]
+        if len(paths) > 0:
+            path = paths[0]
         return path
 
 
@@ -79,6 +80,14 @@ class SisterSpec(BaseSpec):
         path_name, path_attr   = self.get_path(path_name)
         path_method, path_attr = [[method, attr] for method, attr in path_attr.items()][0]
         return (path_method, path_attr)
+
+
+    def get_path_params(self, path_name):
+        params = []
+        (path_method, path_attr) = self.get_path_method_and_attr(path_name)
+        if 'parameters' in path_attr:
+            params = path_attr['parameters']
+        return params
 
 
     def get_components(self) -> list:

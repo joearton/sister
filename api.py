@@ -1,139 +1,49 @@
-import json
-from library.connector import SisterSession, BearerAuth
-from library.io import SisterIO
-from library.api_spec import SisterSpec
-from settings import *
+import inspect
+import re
+from functools import partial
+from library.webservice import WebService
 
 
-
-class SisterTemplate:
-
-    def response_template(self):
-        response = {
-            'status'    : False,
-            'message'   : 'Error occured',
-            'detail'    : '',
-            'data'      : {},
-        }
-        return response
-
-
-    def api_key_template(self):
-        return {
-            'token'         : '',
-            'last_request'  : ''
-        }
-
-
-    def get_auth_data(self):
-        auth_data = {
-            "username"      : self.config['username'],
-            "password"      : self.config['password'],
-            "id_pengguna"   : self.config['id_pengguna']
-        }
-        return auth_data
-
-
-    def is_json(self, text):
-        try:
-            json_object = json.loads(text)
-        except:
-            json_object = {}
-        return json_object
-
-
-    def parse_response(self, response, as_json=False):
-        if response['data']:
-            response['status']  = True
-            response['message'] = ''
-        if as_json:
-            response = json.dumps(response, indent=4)
-        return response
-
-
-
-class SisterAPI(SisterIO, SisterTemplate):
+class SisterAPI(WebService):
 
     def __init__(self):
-        self.session = SisterSession()
-        self.config  = self.read_config()
-        self.api_key = self.read_api_key()
-        self.valid_config = self.check_config()
-        self.spec = SisterSpec()
-        self.spec.initialization()
+        super().__init__()
+        self.reply_as_json = False
+        self.paths = self.spec.get_paths()
+        # create automatic function from sister api spec
+        # for example, get /referensi/sdm
+        # you can call /referensi/sdm using below code
+        # api = SisterApi()
+        # res = api.get_referensi_sdm()
+        # note that / in path become _ in function
+        for path in self.paths:
+            func_name = re.sub(r"\/", '_', re.sub(r"[/]{([^{}]+)}", '', path))
+            params = self.spec.get_path_params(path)
+            kwargs = {}
+            for param_dict in params:
+                if param_dict.get('in'):
+                    kwargs[param_dict.get('name')] = {'required': param_dict.get('required'), 'value': ''}
+            self.add_get_function(f'get{func_name}', path, **kwargs)
 
 
-    def request_api_key(self):
-        response = self.response_template()
-        if not self.valid_config:
-            response['message'] = 'Config or API is not valid'
-            return self.parse_response(response)
-        auth_data   = self.get_auth_data()
-        get_api_key = self.session.post(f"{self.get_ws_url()}/authorize", json=auth_data)
-        if self.is_json(get_api_key.text):
-            json_api_key = get_api_key.json()
-            if get_api_key.status_code == STATUS_SUCCESS:
-                self.update_api_key(token=json_api_key['token'], role=json_api_key['role'], last_request='')
-                response['data'] = json_api_key
-            else:
-                response['message'] = json_api_key['message']
-                response['detail'] = json_api_key['detail']
+    def add_to_class(self, name, content):
+        if not inspect.isclass(content) and hasattr(content, 'class_contribute'):
+            content.class_contribute(self, name)
         else:
-            response['message'] = "Response is not in JSON format, check your URL"
-        return self.parse_response(response)
-        
+            setattr(self, name, content)
 
-    def get_response(self, connector, path, response, fresh_api_key, **kwargs):
-        if self.is_json(connector.text):
-            json_object = connector.json()
-            if connector.status_code in [STATUS_SUCCESS, STATUS_SUCCESS_NO_REPLY]:
-                response['data'] = json_object
-            elif connector.status_code in [STATUS_TOKEN_INVALID]:
-                if fresh_api_key:
-                    response['message'] = "API key invalid, check your credential"
-                    return self.parse_response(response)
-                self.request_api_key()
-                self.get_data(path, True, **kwargs)
+
+    def master_get_function(self, path, **kwargs):
+        parsed_kwargs = {}
+        for key, value in kwargs.items():
+            if value.get('required') and len(value.get('value')) == 0:
+                raise NameError(f'Require argument {list(kwargs.keys())}\n\nARGUMENTS HINT: {self.spec.get_path_params(path)}')
             else:
-                response['message'] = json_object['message']
-                response['detail']  = json_object['detail']
-        else:
-            response['message'] = "Response is not in JSON format, check your URL"
-        return self.parse_response(response)
+                parsed_kwargs[key] = value['value']
+        res = self.get_data(path, **parsed_kwargs)
+        return self.parse_response(res, as_json=self.reply_as_json)
 
 
-    def connect(self, method, path_url):
-        method    = method.lower()
-        connector = self.session
-        if method == HTTP_METHOD_GET:
-            connector = connector.get
-        elif method == HTTP_METHOD_POST:
-            connector = connector.post
-        elif method == HTTP_METHOD_PATCH:
-            connector = connector.patch
-        elif method == HTTP_METHOD_DELETE:
-            connector = connector.delete
-        response = connector(path_url, auth=BearerAuth(self.api_key['token']))
-        return response
-            
+    def add_get_function(self, name, path, **kwargs):
+        self.add_to_class(name, partial(self.master_get_function, path, **kwargs))
 
-    def get_data(self, path, fresh_api_key=False, **kwargs):
-        response = self.response_template()
-        # check whether the config is valid or not
-        if not self.valid_config:
-            response['message'] = 'Config or API is not valid'
-            return response
-        # check whether authorization is success or not
-        if not self.api_key:
-            api_key = self.request_api_key()
-            self.api_key = self.read_api_key()
-            # get fresh api key
-            if not api_key['status'] == True:
-                return api_key
-
-        method, attr = self.spec.get_path_method_and_attr(path)
-        path_url  = self.parse_path_url(path, kwargs)
-        connector = self.connect(method, path_url)
-        response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)        
-        return response
-    

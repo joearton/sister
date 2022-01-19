@@ -27,7 +27,24 @@ res = api.get_data('/referensi/sdm')
 print(res)
 ```
 
-### See Available Paths?
+## What You Have to Know
+This code use automatic function fetched from Sister api spec. So, you can easily call path using below code:
+```
+# path /referensi/perguruan_tinggi
+# remember that / in path is _ in function
+res = api.get_referensi_perguruan_tinggi()
+print(res)
+
+# path /referensi/sdm
+res = api.get_referensi_sdm()
+print(res)
+
+# path /dokumen
+res = api.get_dokumen(id_sdm='get user id in UUID format')
+print(res)
+```
+
+### Want to See Available Paths?
 
 ```
 paths = api.spec.get_paths()
