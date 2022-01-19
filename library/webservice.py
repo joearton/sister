@@ -88,6 +88,7 @@ class WebService(SisterIO, SisterTemplate):
         self.api_key = self.read_api_key()
         method, attr = self.spec.get_path_method_and_attr(path)
         path_url  = self.parse_path_url(path, kwargs)
+        print(path_url)
         connector = self.connect(method, path_url)
         response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)        
         return response

@@ -36,10 +36,13 @@ class SisterAPI(WebService):
     def master_get_function(self, path, **kwargs):
         parsed_kwargs = {}
         for key, value in kwargs.items():
-            if value.get('required') and len(value.get('value')) == 0:
-                raise NameError(f'Require argument {list(kwargs.keys())}\n\nARGUMENTS HINT: {self.spec.get_path_params(path)}')
-            else:
-                parsed_kwargs[key] = value['value']
+            if 'required' in value:
+                if value.get('required') and len(value.get('value')) == 0:
+                    raise NameError(f'Require argument {list(kwargs.keys())}\n\nARGUMENTS HINT: {self.spec.get_path_params(path)}')
+                else:
+                    parsed_kwargs[key] = value['value']
+        if not parsed_kwargs:
+            parsed_kwargs = kwargs
         res = self.get_data(path, **parsed_kwargs)
         return self.parse_response(res, as_json=self.reply_as_json)
 
