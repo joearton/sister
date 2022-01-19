@@ -13,14 +13,14 @@ class WebService(SisterIO, SisterTemplate):
         self.session = SisterSession()
         self.config  = self.read_config()
         self.api_key = self.read_api_key()
-        self.valid_config = self.check_config()
+        self.use_cache = True
         self.spec = SisterSpec()
         self.spec.initialization()
 
 
     def request_api_key(self):
         response = self.response_template()
-        if not self.valid_config:
+        if not self.check_config():
             response['message'] = 'Config or API is not valid'
             return self.parse_response(response)
         auth_data   = self.get_auth_data()
@@ -72,6 +72,25 @@ class WebService(SisterIO, SisterTemplate):
         return response
             
 
+    def path_as_io(self, path):
+        return path.replace('/', '_')
+
+
+    def save_to_cache(self, path, response):
+        cache_filename = os.path.join(CACHE_DIR, f"{self.path_as_io(path)}.json")
+        if response['status'] == True:
+            with open(cache_filename, 'w') as writer:
+                writer.write( json.dumps(response['data']) )
+
+
+    def get_from_cache(self, path):
+        cache_filename = os.path.join(CACHE_DIR, f"{self.path_as_io(path)}.json")
+        if os.path.isfile(cache_filename):
+            with open(cache_filename, 'r') as reader:
+                json_object = json.load(reader)
+                return json_object
+
+
     def get_data(self, path, fresh_api_key=False, **kwargs):
         response = self.response_template()
         # check whether the config is valid or not
@@ -85,11 +104,16 @@ class WebService(SisterIO, SisterTemplate):
             if not api_key['status'] == True:
                 return api_key
 
+        cache_available = self.get_from_cache(path)
+        if cache_available:
+            response['data'] = cache_available
+            return response
+
         self.api_key = self.read_api_key()
         method, attr = self.spec.get_path_method_and_attr(path)
         path_url  = self.parse_path_url(path, kwargs)
-        print(path_url)
         connector = self.connect(method, path_url)
-        response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)        
+        response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)
+        self.save_to_cache(path, response)
         return response
     
