@@ -2,18 +2,20 @@ import json
 from library.connector import SisterSession, BearerAuth
 from library.io import SisterIO
 from library.api_spec import SisterSpec
-from library.template import SisterTemplate
+from library.cache import SisterCache
 from settings import *
 
 
 
-class WebService(SisterIO, SisterTemplate):
+class WebService(SisterIO, SisterCache):
 
     def __init__(self):
         self.session = SisterSession()
         self.config  = self.read_config()
         self.api_key = self.read_api_key()
         self.caching_system = True
+        self.token_expired_time = 60*60 # one hour
+        self.caching_expired_time = 60*60*24 # one hour
         self.spec = SisterSpec()
 
 
@@ -27,7 +29,8 @@ class WebService(SisterIO, SisterTemplate):
         if self.is_json(get_api_key.text):
             json_api_key = get_api_key.json()
             if get_api_key.status_code == STATUS_SUCCESS:
-                self.update_api_key(token=json_api_key['token'], role=json_api_key['role'], last_request='')
+                self.update_api_key(token=json_api_key['token'],
+                    role=json_api_key['role'], last_request=self.get_iso_datetime())
                 response['data'] = json_api_key
             else:
                 response['message'] = json_api_key['message']
@@ -71,39 +74,23 @@ class WebService(SisterIO, SisterTemplate):
         return response
             
 
-    def path_as_io(self, path):
-        return path.replace('/', '_')
-
-
-    def save_to_cache(self, path, response):
-        cache_filename = os.path.join(CACHE_DIR, f"{self.path_as_io(path)}.json")
-        if response['status'] == True:
-            with open(cache_filename, 'w') as writer:
-                writer.write( json.dumps(response['data']) )
-
-
-    def get_from_cache(self, path):
-        if self.caching_system:
-            cache_filename = os.path.join(CACHE_DIR, f"{self.path_as_io(path)}.json")
-            if os.path.isfile(cache_filename):
-                with open(cache_filename, 'r') as reader:
-                    json_object = json.load(reader)
-                    return json_object
-
 
     def get_data(self, path, fresh_api_key=False, **kwargs):
         response = self.response_template()
         # check whether authorization is success or not
         if not self.api_key:
             api_key = self.request_api_key()
-            # get fresh api key
             if not api_key['status'] == True:
-                return api_key
+                return api_key        
 
         cache_available = self.get_from_cache(path)
         if cache_available:
             response['data'] = cache_available
             return response
+
+        rest_time = self.get_rest_datetime(self.api_key['last_request'])
+        if rest_time.total_seconds() >= self.token_expired_time:
+            self.request_api_key()
 
         self.api_key = self.read_api_key()
         method, attr = self.spec.get_path_method_and_attr(path)

@@ -30,20 +30,16 @@ class SisterAPI(WebService):
 
     def check_required_param(self, path):
         params = self.spec.get_path_params(path)
-        required_params = list(filter(lambda x: print(x), params))
-        required_params = list(filter(lambda x: x['required'] == True, required_params))
+        required_params = list(filter(lambda x: x.get('required') == True, params))
+        required_params = [x['name'] for x in required_params]
         return [required_params, params]
 
 
     def master_get_function(self, path, **kwargs):
         required_params, params = self.check_required_param(path)
-        for key, value in kwargs.items():
-            pass
-            '''
-            if 'required' in value:
-                if value.get('required') and len(value.get('value')) == 0:
-                    raise NameError(f'Require argument {list(kwargs.keys())}\n\nARGUMENTS HINT: {self.spec.get_path_params(path)}')
-            '''
+        for param_name in required_params:
+            if not param_name in kwargs:
+                raise NameError(f'Require argument {list(required_params)}\n\nARGUMENTS HINT:\n{params}')
         res = self.get_data(path, **kwargs)
         return self.parse_response(res, as_json=self.reply_as_json)
 

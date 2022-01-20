@@ -3,7 +3,6 @@ import json
 import os
 import validators
 from settings import *
-from datetime import datetime, timedelta 
 
 
 class SisterIO:
