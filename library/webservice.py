@@ -11,12 +11,12 @@ class WebService(SisterIO, SisterCache):
 
     def __init__(self):
         self.session = SisterSession()
+        self.spec = SisterSpec()
         self.config  = self.read_config()
         self.api_key = self.read_api_key()
         self.caching_system = True
         self.token_expired_time = 60*60 # one hour
         self.caching_expired_time = 60*60*24 # one hour
-        self.spec = SisterSpec()
 
 
     def request_api_key(self):
@@ -30,7 +30,7 @@ class WebService(SisterIO, SisterCache):
             json_api_key = get_api_key.json()
             if get_api_key.status_code == STATUS_SUCCESS:
                 self.update_api_key(token=json_api_key['token'],
-                    role=json_api_key['role'], last_request=self.get_iso_datetime())
+                    role=json_api_key['role'], accessed_at=self.get_iso_datetime())
                 response['data'] = json_api_key
             else:
                 response['message'] = json_api_key['message']
@@ -77,26 +77,42 @@ class WebService(SisterIO, SisterCache):
 
     def get_data(self, path, fresh_api_key=False, **kwargs):
         response = self.response_template()
+        path_url = self.parse_path_url(path, **kwargs)
+
         # check whether authorization is success or not
         if not self.api_key:
             api_key = self.request_api_key()
             if not api_key['status'] == True:
                 return api_key        
+            self.api_key = self.read_api_key()
 
-        cache_available = self.get_from_cache(path)
+        # check from cache
+        cache_available = self.get_from_cache(path_url.name())
         if cache_available:
-            response['data'] = cache_available
-            return response
+            response['data'] = cache_available['data']
+            rest_time = self.get_rest_datetime(cache_available.get('accessed_at'))
+            if rest_time.total_seconds() <= self.caching_expired_time:
+                return response
 
-        rest_time = self.get_rest_datetime(self.api_key['last_request'])
-        if rest_time.total_seconds() >= self.token_expired_time:
-            self.request_api_key()
+        # check api-key expiration
+        if self.api_key.get('accessed_at'):
+            rest_time = self.get_rest_datetime(self.api_key.get('accessed_at'))
+            if rest_time.total_seconds() >= self.token_expired_time:
+                self.request_api_key()
 
         self.api_key = self.read_api_key()
         method, attr = self.spec.get_path_method_and_attr(path)
-        path_url  = self.parse_path_url(path, kwargs)
         connector = self.connect(method, path_url)
         response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)
-        self.save_to_cache(path, response)
+
+        # save response to cache to make it faster
+        # remember that only large data will be saved to system cache
+        # when query exists, cache will not be saved
+        '''
+            query_kwargs = dict(filter(lambda x: not x[0].startswith('__') and not x[0].endswith('__'), kwargs.items()))
+            if not query_kwargs:
+        '''
+        self.save_to_cache(path_url.name(), response)
+
         return response
     

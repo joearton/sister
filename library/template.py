@@ -17,7 +17,7 @@ class SisterTemplate:
     def api_key_template(self):
         return {
             'token'         : '',
-            'last_request'  : ''
+            'accessed_at'  : ''
         }
 
 

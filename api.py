@@ -9,16 +9,27 @@ class SisterAPI(WebService):
     def __init__(self):
         super().__init__()
         self.reply_as_json = False
-        self.paths = self.spec.get_paths()
         # create automatic function from sister api spec
         # for example, get /referensi/sdm
         # you can call /referensi/sdm using below code
         # api = SisterApi()
         # res = api.get_referensi_sdm()
         # note that / in path become _ in function
+        self.create_func_from_spec()
+
+
+    def create_func_from_spec(self):
+        self.paths = self.spec.get_paths()
         for path in self.paths:
-            func_name = re.sub(r"\/", '_', re.sub(r"[/]{([^{}]+)}", '', path))
-            self.add_get_function(f'get{func_name}', path)
+            isb_format  = r"[/]{([^{}]+)}" # inside curly bracket
+            func_name   = re.sub(r"\/", '_', path)
+            url_paths   = re.findall(isb_format, path)
+            for url_path in url_paths:
+                func_name = func_name.replace(f'{{{url_path}}}', 'bypath')
+            # remove _ in first func_name
+            if func_name.startswith('_'):
+                func_name = func_name[1:]
+            self.add_get_function(f'get_{func_name}', path)
 
 
     def add_to_class(self, name, content):
@@ -40,6 +51,8 @@ class SisterAPI(WebService):
         for param_name in required_params:
             if not param_name in kwargs:
                 raise NameError(f'Require argument {list(required_params)}\n\nARGUMENTS HINT:\n{params}')
+        # put more accessible info about params
+        kwargs['__params__'] = params
         res = self.get_data(path, **kwargs)
         return self.parse_response(res, as_json=self.reply_as_json)
 

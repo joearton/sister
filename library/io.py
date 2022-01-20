@@ -5,6 +5,19 @@ import validators
 from settings import *
 
 
+class PathURL:
+
+    def __init__(self, path_url, path):
+        self.path_url = path_url
+        self.path = path
+    
+    def __str__(self):
+        return self.path_url
+
+    def name(self):
+        return self.path
+
+
 class SisterIO:
 
     def read_file(self, filename):
@@ -61,14 +74,27 @@ class SisterIO:
         return f'{ws_root_url}{ws_url}'
 
 
-    def parse_path_url(self, path, query):
+    def parse_path_url(self, path, **query):
+        # get more info about query here
+        # so we can take more
+        counter, params = 0, {}
+        if '__params__' in query:
+            __params__ = query.get('__params__')
+            for param in __params__:
+                name = param.get('name')
+                if name: params[name] = param
+
+        # filter query, only accept public kwargs
+        fil_query = dict(filter(lambda x: not x[0].startswith('__') and not x[0].endswith('__'), query.items()))
+        for key, value in fil_query.items():
+            param = params.get(key)
+            if param:
+                in_type = param.get('in')
+                if in_type == 'path':
+                    path = path.replace('{{{key}}}'.format(key=key), value)
+                else:
+                    path += '?' if counter == 0 else '&'
+                    path += f'{key}={value}'
+                    counter += 1
         path_url = f"{self.get_ws_url()}{path}"
-        counter   = 0
-        for key, value in query.items():
-            if counter == 0:
-                path_url += '?'
-            else:
-                path_url += '&'
-            path_url += f'{key}={value}'
-            counter += 1
-        return path_url
+        return PathURL(path_url, path)

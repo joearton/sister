@@ -1,5 +1,3 @@
-from asyncore import read
-from sys import path
 import yaml
 import os
 from settings import *
@@ -13,6 +11,7 @@ def get_specs():
     with open(API_SPEC_FILE, 'r') as reader:
         spec = yaml.safe_load(reader)
     return spec
+
 
 
 class BaseSpec:
@@ -88,7 +87,17 @@ class SisterSpec(BaseSpec):
         params = []
         (path_method, path_attr) = self.get_path_method_and_attr(path_name)
         if 'parameters' in path_attr:
+            refered_params = None
             params = path_attr['parameters']
+            for param in params:
+                if '$ref' in param:
+                    references = param['$ref'].replace('#', '').split('/')
+                    references = list(filter(lambda x: len(x) > 0, references))
+                    refered_params = self.get_spec(references[0])
+                    for reference in references[1:]:
+                        refered_params = refered_params[reference]
+            if refered_params:
+                params = [refered_params]
         return params
 
 
