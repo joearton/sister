@@ -10,6 +10,7 @@ from settings import *
 class WebService(SisterIO, SisterCache):
 
     def __init__(self):
+        SisterCache.__init__(self)
         self.session = SisterSession()
         self.spec = SisterSpec()
         self.config  = self.read_config()
@@ -87,7 +88,7 @@ class WebService(SisterIO, SisterCache):
             self.api_key = self.read_api_key()
 
         # check from cache
-        cache_available = self.get_from_cache(path_url.name())
+        cache_available = self.get_cache(path_url.name())
         if cache_available:
             response['data'] = cache_available['data']
             rest_time = self.get_rest_datetime(cache_available.get('accessed_at'))
@@ -112,7 +113,7 @@ class WebService(SisterIO, SisterCache):
             query_kwargs = dict(filter(lambda x: not x[0].startswith('__') and not x[0].endswith('__'), kwargs.items()))
             if not query_kwargs:
         '''
-        self.save_to_cache(path_url.name(), response)
+        self.save_cache(path_url.name(), response)
 
         return response
     
