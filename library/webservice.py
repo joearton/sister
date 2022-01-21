@@ -107,12 +107,6 @@ class WebService(SisterIO, SisterCache):
         response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)
 
         # save response to cache to make it faster
-        # remember that only large data will be saved to system cache
-        # when query exists, cache will not be saved
-        '''
-            query_kwargs = dict(filter(lambda x: not x[0].startswith('__') and not x[0].endswith('__'), kwargs.items()))
-            if not query_kwargs:
-        '''
         self.save_cache(path_url.name(), response)
 
         return response

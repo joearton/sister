@@ -1,5 +1,12 @@
 import json
-from datetime import datetime 
+from datetime import datetime
+from subprocess import call 
+
+
+class Response(dict):
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
 
 class SisterTemplate:
@@ -44,7 +51,7 @@ class SisterTemplate:
             response['message'] = ''
         if as_json:
             response = json.dumps(response, indent=4)
-        return response
+        return Response(response)
 
 
     def get_iso_datetime(self):

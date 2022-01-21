@@ -1,4 +1,5 @@
 from asyncore import write
+from linecache import cache
 from library.template import SisterTemplate
 import json, os
 from settings import *
@@ -11,13 +12,14 @@ class AttrDict(dict):
     __delattr__ = dict.__delitem__
 
 
+
 class CacheAsJson:
 
     def __init__(self):
         self.cache_db_filename = os.path.join(CACHE_DIR,  'cache_db.json')
 
 
-    def get_unique_id(self, length=11):
+    def get_unique_id(self, length=15):
         unique_id = uuid.uuid4()
         unique_id = unique_id.hex[:length].upper()
         return unique_id
@@ -25,13 +27,16 @@ class CacheAsJson:
 
     def read_db(self, cache_id: str = ''):
         db_object = {}
+        # check saved db object
         if os.path.isfile(self.cache_db_filename):
             with open(self.cache_db_filename, 'r') as reader:
                 db_object = json.load(reader)
-        if not cache_id is None:
-            if cache_id in db_object:
-                return db_object[cache_id]
-        return db_object
+        if cache_id and db_object:
+            cache_object = db_object.get(cache_id)
+            if cache_object:
+                return cache_object
+        else:     
+            return db_object
 
 
     def get_item(self, id):
@@ -39,7 +44,7 @@ class CacheAsJson:
 
 
     def is_exist(self, id):
-        return self.read_db(id)
+        return len(self.read_db(id)) > 0
 
 
     def write_db(self, cache_object):
@@ -59,6 +64,17 @@ class CacheAsJson:
         return cache_object
 
 
+    def delete(self, cache_id):
+        db_object = self.read_db()
+        deleted_object = {}
+        if cache_id in db_object:
+            deleted_object = db_object[cache_id]
+            db_object.pop(cache_id, None)
+            with open(self.cache_db_filename, 'w') as writer:
+                json.dump(db_object, writer)
+        return deleted_object
+
+
 class SisterCache(SisterTemplate):
 
     def __init__(self, cache_db_class = CacheAsJson):
@@ -75,6 +91,8 @@ class SisterCache(SisterTemplate):
 
     def get_cache_fname(self):
         unique_id = self.cache_db_class.get_unique_id()
+        if unique_id in os.listdir(CACHE_DIR):
+            return self.get_cache_fname() 
         cache_fname = f'{unique_id}.{self.cache_ext}'
         return cache_fname
 
@@ -84,11 +102,14 @@ class SisterCache(SisterTemplate):
         return cache_fpath
 
 
-    def read_cache_file(self, filepath):
+    def read_cache_file(self, cache_object):
         json_object = {}
+        filepath = cache_object['filepath']
         if os.path.isfile(filepath):
             with open(filepath, 'r') as reader:
                 json_object = json.load(reader)
+        else:
+            self.cache_db_class.delete(cache_object['id'])
         return json_object
 
 
@@ -97,6 +118,11 @@ class SisterCache(SisterTemplate):
         with open(cache_fpath, 'w') as writer:
             json.dump(response['data'], writer)
         return [path, cache_fpath, response]
+
+
+    def remove_cache_file(self, filepath):
+        if os.path.isfile(filepath):
+            os.remove(filepath)
 
 
     def get_object(self, path, filepath, response):
@@ -121,10 +147,11 @@ class SisterCache(SisterTemplate):
 
 
     def get_cache(self, path):
-        if not self.caching_system is True:
+        if self.caching_system is False:
             return None
         cache_id = self.path_as_io(path)
         cache_object = self.cache_db_class.get(cache_id)
         if cache_object:
-            cache_object['data'] = self.read_cache_file(cache_object['filepath'])
+            cache_object['data'] = self.read_cache_file(cache_object)
         return cache_object
+
