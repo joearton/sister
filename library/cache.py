@@ -1,3 +1,4 @@
+from asyncore import write
 from library.template import SisterTemplate
 import json, os
 from settings import *
@@ -25,7 +26,7 @@ class CacheAsJson:
     def read_db(self, cache_id: str = ''):
         db_object = {}
         if os.path.isfile(self.cache_db_filename):
-            with open(self.cache_db_filename, 'w') as reader:
+            with open(self.cache_db_filename, 'r') as reader:
                 db_object = json.load(reader)
         if not cache_id is None:
             if cache_id in db_object:
@@ -94,7 +95,7 @@ class SisterCache(SisterTemplate):
     def write_cache_file(self, path, response):
         cache_fpath = self.get_cache_fpath()
         with open(cache_fpath, 'w') as writer:
-            json.dump(writer, response['data'])
+            json.dump(response['data'], writer)
         return [path, cache_fpath, response]
 
 
