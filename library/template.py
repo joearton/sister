@@ -42,8 +42,7 @@ class SisterTemplate:
             json_object = json.loads(text)
         except:
             json_object = {}
-        return json_object
-
+        return json_object 
 
     def parse_response(self, response, as_json=False):
         if response['data']:
