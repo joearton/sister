@@ -44,6 +44,7 @@ class SisterTemplate:
             json_object = {}
         return json_object 
 
+
     def parse_response(self, response, as_json=False):
         if response['data']:
             response['status']  = True

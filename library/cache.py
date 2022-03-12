@@ -115,9 +115,12 @@ class SisterCache(SisterTemplate):
 
     def write_cache_file(self, path, response):
         cache_fpath = self.get_cache_fpath()
-        with open(cache_fpath, 'w') as writer:
-            json.dump(response['data'], writer)
-        return [path, cache_fpath, response]
+        try:
+            with open(cache_fpath, 'w') as writer:
+                json.dump(response['data'], writer)
+            return [path, cache_fpath, response]
+        except TypeError: # because it might be byte or binnary
+            return False
 
 
     def remove_cache_file(self, filepath):
@@ -142,8 +145,9 @@ class SisterCache(SisterTemplate):
             return None
         # write and update cache database
         cache_object = self.write_cache_file(path, response)
-        cache_object = self.get_object(*cache_object)
-        self.cache_db_class.save(cache_object)
+        if cache_object:
+            cache_object = self.get_object(*cache_object)
+            self.cache_db_class.save(cache_object)
 
 
     def get_cache(self, path):

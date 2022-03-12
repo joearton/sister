@@ -56,7 +56,9 @@ class WebService(SisterIO, SisterCache):
                 response['message'] = json_object['message']
                 response['detail']  = json_object['detail']
         else:
-            response['message'] = "Response is not in JSON format, check your URL"
+            response['message'] = "Response is not in JSON format"
+            # if response is byte/binnary like image
+            response['data'] = connector.content
         return self.parse_response(response)
 
 
