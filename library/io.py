@@ -87,14 +87,15 @@ class SisterIO:
         # filter query, only accept public kwargs
         fil_query = dict(filter(lambda x: not x[0].startswith('__') and not x[0].endswith('__'), query.items()))
         for key, value in fil_query.items():
-            param = params.get(key)
+            param   = params.get(key)
+            in_type = 'query'
             if param:
                 in_type = param.get('in')
-                if in_type == 'path':
-                    path = path.replace('{{{key}}}'.format(key=key), value)
-                else:
-                    path += '?' if counter == 0 else '&'
-                    path += f'{key}={value}'
-                    counter += 1
+            if in_type == 'path':
+                path = path.replace('{{{key}}}'.format(key=key), value)
+            else:
+                path += '?' if counter == 0 else '&'
+                path += f'{key}={value}'
+                counter += 1
         path_url = f"{self.get_ws_url()}{path}"
         return PathURL(path_url, path)

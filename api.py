@@ -40,7 +40,7 @@ class SisterAPI(WebService):
 
 
     def check_required_param(self, path):
-        params = self.spec.get_path_params(path)
+        params = self.spec.get_path_params(path)        
         required_params = list(filter(lambda x: x.get('required') == True, params))
         required_params = [x['name'] for x in required_params]
         return [required_params, params]

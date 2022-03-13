@@ -97,7 +97,7 @@ class SisterSpec(BaseSpec):
                     for reference in references[1:]:
                         refered_params = refered_params[reference]
             if refered_params:
-                params = [refered_params]
+                params.append(refered_params)
         return params
 
 

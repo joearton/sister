@@ -41,8 +41,9 @@ class WebService(SisterIO, SisterCache):
         return self.parse_response(response)
         
 
-    def get_response(self, connector, path, response, fresh_api_key, **kwargs):
-        if self.is_json(connector.text):
+    def get_response(self, connector, path, attr, response, fresh_api_key, **kwargs):
+        content_type = connector.headers.get('Content-Type')
+        if content_type == 'application/json':
             json_object = connector.json()
             if connector.status_code in [STATUS_SUCCESS, STATUS_SUCCESS_NO_REPLY]:
                 response['data'] = json_object
@@ -106,7 +107,7 @@ class WebService(SisterIO, SisterCache):
         self.api_key = self.read_api_key()
         method, attr = self.spec.get_path_method_and_attr(path)
         connector = self.connect(method, path_url)
-        response  = self.get_response(connector, path, response, fresh_api_key, **kwargs)
+        response  = self.get_response(connector, path, attr, response, fresh_api_key, **kwargs)
 
         # save response to cache to make it faster
         self.save_cache(path_url.name(), response)
