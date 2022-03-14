@@ -60,6 +60,7 @@ class WebService(SisterIO, SisterCache):
             response['message'] = "Response is not in JSON format"
             # if response is byte/binnary like image
             response['data'] = connector.content
+            response['content-type'] = content_type
         return self.parse_response(response)
 
 
@@ -74,7 +75,12 @@ class WebService(SisterIO, SisterCache):
             connector = connector.patch
         elif method == HTTP_METHOD_DELETE:
             connector = connector.delete
-        response = connector(path_url, auth=BearerAuth(self.api_key['token']))
+        api_token = self.api_key.get('token')
+        if not api_token:
+            # request again when unavailable
+            self.request_api_key()
+            api_token = self.api_key.get('token')
+        response = connector(path_url, auth=BearerAuth(api_token))
         return response
             
 
