@@ -68,6 +68,8 @@ class SisterIO:
 
     def get_ws_url(self):
         ws_root_url = self.config['sister_url']
+        if ws_root_url.endswith('/'):
+            ws_root_url = self.config['sister_url'][:-1]
         ws_url = self.spec.get_server('sandbox')['url']
         if not self.config['use_sandbox']:
             ws_url = self.spec.get_server('ws')['url']

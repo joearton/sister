@@ -9,13 +9,13 @@ from settings import *
 
 class WebService(SisterIO, SisterCache):
 
-    def __init__(self):
+    def __init__(self, use_cache=True):
         SisterCache.__init__(self)
         self.session = SisterSession()
         self.spec = SisterSpec()
         self.config  = self.read_config()
         self.api_key = self.read_api_key()
-        self.caching_system = True
+        self.use_cache = use_cache
         self.token_expired_time = 60*60 # one hour
         self.caching_expired_time = 60*60*24 # one hour
 

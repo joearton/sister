@@ -6,8 +6,8 @@ from library.webservice import WebService
 
 class SisterAPI(WebService):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, use_cache=True):
+        super().__init__(use_cache=use_cache)
         self.reply_as_json = False
         # create automatic function from sister api spec
         # for example, get /referensi/sdm

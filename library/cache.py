@@ -151,7 +151,7 @@ class SisterCache(SisterTemplate):
 
 
     def get_cache(self, path):
-        if self.caching_system is False:
+        if self.use_cache is False:
             return None
         cache_id = self.path_as_io(path)
         cache_object = self.cache_db_class.get(cache_id)
