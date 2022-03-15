@@ -4,10 +4,10 @@ from functools import partial
 from library.webservice import WebService
 
 
-class SisterAPI(WebService):
+class WsSisterAPI(WebService):
 
-    def __init__(self, use_cache=True):
-        super().__init__(use_cache=use_cache)
+    def __init__(self):
+        super().__init__()
         self.reply_as_json = False
         # create automatic function from sister api spec
         # for example, get /referensi/sdm
@@ -60,3 +60,5 @@ class SisterAPI(WebService):
     def add_get_function(self, name, path, **kwargs):
         self.add_to_class(name, partial(self.master_get_function, path, **kwargs))
 
+
+SisterAPI = WsSisterAPI()
