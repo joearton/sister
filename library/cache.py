@@ -65,6 +65,8 @@ class CacheAsJson:
 
     def get(self, cache_id):
         cache_object = self.read_db(cache_id)
+        if not cache_object:
+            cache_object = {}
         return cache_object
 
 
@@ -177,5 +179,5 @@ class SisterCache(SisterTemplate):
             cache_object = self.cache_db_class.get(cache_id)
             if cache_object:
                 cache_object['data'] = self.read_cache_file(cache_object)
-            return cache_object
+        return cache_object
 
