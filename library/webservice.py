@@ -47,6 +47,7 @@ class WebService(SisterIO, SisterCache):
 
     def get_response(self, connector, path, attr, response, fresh_api_key, **kwargs):
         content_type = connector.headers.get('Content-Type')
+        response['content-type'] = content_type
         if content_type == 'application/json':
             json_object = connector.json()
             if connector.status_code in [STATUS_SUCCESS, STATUS_SUCCESS_NO_REPLY]:
@@ -64,7 +65,6 @@ class WebService(SisterIO, SisterCache):
             response['message'] = "Response is not in JSON format"
             # if response is byte/binnary like image
             response['data'] = connector.content
-            response['content-type'] = content_type
         return self.parse_response(response)
 
 
@@ -102,10 +102,13 @@ class WebService(SisterIO, SisterCache):
 
         # check from cache
         cache_available = self.get_cache(path_url.name())
+        response['cache'] = False
         if cache_available:
             response['data'] = cache_available['data']
             rest_time = self.get_rest_datetime(cache_available.get('accessed_at'))
             if rest_time.total_seconds() <= self.caching_expired_time:
+                response['cache'] = True
+                response['accessed_at'] = cache_available.get('accessed_at')
                 return response
 
         # check api-key expiration
