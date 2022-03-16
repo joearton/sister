@@ -14,14 +14,23 @@ class WebService(SisterIO, SisterCache):
         self.session = SisterSession()
         self.spec = SisterSpec()
         self.config  = self.read_config()
-        self.api_key = self.read_api_key()
-        self.caching_system = True
-        self.token_expired_time = 60*60 # one hour
-        self.caching_expired_time = 60*60*24 # one hour
+        self.token_expired_datetime = {"minutes": 60}
+        self.cache_expired_datetime = {"days": 1}
+        self.use_cache()
+        self.read_and_validate_api()
 
 
     def use_cache(self, status=True):
         self.caching_system = status
+
+
+    def read_and_validate_api(self):
+        try:
+            self.api_key = self.read_api_key()
+        except json.decoder.JSONDecodeError:
+            os.remove(API_KEY_FILE)
+        finally:
+            self.api_key = self.read_api_key()
 
 
     def request_api_key(self):
@@ -34,8 +43,12 @@ class WebService(SisterIO, SisterCache):
         if self.is_json(get_api_key.text):
             json_api_key = get_api_key.json()
             if get_api_key.status_code == STATUS_SUCCESS:
-                self.update_api_key(token=json_api_key['token'],
-                    role=json_api_key['role'], accessed_at=self.get_iso_datetime())
+                self.update_api_key(
+                    token = json_api_key['token'],
+                    role  = json_api_key['role'],
+                    accessed_at = self.get_now_datetime(isoformat=True),
+                    expired_at  = self.get_expired_datetime(isoformat=True, **self.token_expired_datetime),
+                )
                 response['data'] = json_api_key
             else:
                 response['message'] = json_api_key['message']
@@ -93,38 +106,46 @@ class WebService(SisterIO, SisterCache):
         response = self.response_template()
         path_url = self.parse_path_url(path, **kwargs)
 
+        # set default response
+        response['cache'] = False
+        response['accessed_at'] = self.get_now_datetime()
+        response['expired_at']  = self.get_expired_datetime(**self.cache_expired_datetime)
+
         # check whether authorization is success or not
         if not self.api_key:
             api_key = self.request_api_key()
             if not api_key['status'] == True:
                 return api_key        
-            self.api_key = self.read_api_key()
+            self.read_and_validate_api()
 
         # check from cache
         cache_available = self.get_cache(path_url.name())
-        response['cache'] = False
-        if cache_available:
-            response['data'] = cache_available['data']
-            rest_time = self.get_rest_datetime(cache_available.get('accessed_at'))
-            if rest_time.total_seconds() <= self.caching_expired_time:
-                iso_datetime = cache_available.get('accessed_at')
+        if cache_available.get('data'):
+            response['data'] = cache_available.get('data')
+            accessed_at = self.iso_to_datetime(cache_available.get('accessed_at'))
+            expired_at  = self.iso_to_datetime(cache_available.get('expired_at'))
+            if self.get_now_datetime() < expired_at:
+                # update response when using cache
                 response['cache'] = True
-                response['accessed_at'] = self.iso_to_datetime(iso_datetime)
+                response['expired_at']  = expired_at
+                response['accessed_at'] = accessed_at
                 return response
 
         # check api-key expiration
-        if self.api_key.get('accessed_at'):
-            rest_time = self.get_rest_datetime(self.api_key.get('accessed_at'))
-            if rest_time.total_seconds() >= self.token_expired_time:
+        token_expired_time = self.api_key.get('expired_at')
+        if token_expired_time:
+            token_expired_time = self.iso_to_datetime(token_expired_time)
+            if self.get_now_datetime() > token_expired_time:
                 self.request_api_key()
 
-        self.api_key = self.read_api_key()
+        # read and validate API Key again
+        self.read_and_validate_api()
         method, attr = self.spec.get_path_method_and_attr(path)
         connector = self.connect(method, path_url)
         response  = self.get_response(connector, path, attr, response, fresh_api_key, **kwargs)
 
         # save response to cache to make it faster
-        self.save_cache(path_url.name(), response)
+        self.save_cache(path_url.name(), response, **self.cache_expired_datetime)
 
         return response
     

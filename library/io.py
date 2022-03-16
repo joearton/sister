@@ -30,7 +30,7 @@ class SisterIO:
 
     def update_file(self, filename, filepath, **kwargs):
         for key, value in kwargs.items():
-            filepath[key] = value
+            filepath[key] = str(value)
         with open(filename, 'w') as writer:
             writer.write(json.dumps(filepath, indent=4))
         return self.read_file(filename)
@@ -47,6 +47,7 @@ class SisterIO:
 
     def read_api_key(self):
         return self.read_file(API_KEY_FILE)
+
 
 
     def update_api_key(self, **kwargs):

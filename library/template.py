@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from subprocess import call 
 
 
@@ -10,6 +10,9 @@ class Response(dict):
 
 
 class SisterTemplate:
+
+    def set_cache_expired_day(self, day):
+        self.cache_expired_day = day
 
     def response_template(self):
         response = {
@@ -54,25 +57,24 @@ class SisterTemplate:
         return Response(response)
 
 
-    def get_iso_datetime(self):
-        # created for json dumps 
-        now = datetime.now()
-        iso = now.isoformat()
-        return iso
-
-
-    def get_now_datetime(self):
-        # created for json dumps 
-        now = datetime.now()
-        return now
-
-
     def iso_to_datetime(self, iso_datetime):
-        iso_format = "%Y-%m-%dT%H:%M:%S.%f"
+        iso_format = "%Y-%m-%d %H:%M:%S.%f"
         dt_format  = datetime.strptime(iso_datetime, iso_format)
         return dt_format
 
-    
-    def get_rest_datetime(self, old_datetime):
-        return (self.get_now_datetime() - self.iso_to_datetime(old_datetime))
 
+    def get_now_datetime(self, isoformat=False):
+        # created for json dumps 
+        current_datetime = datetime.now()
+        if isoformat:
+            current_datetime.isoformat()
+        return current_datetime
+
+    
+    def get_expired_datetime(self, old_datetime=None, isoformat=False, **expired_set):
+        if old_datetime:
+            expired_datetime = timedelta(**expired_set) + old_datetime
+        expired_datetime = timedelta(**expired_set) + self.get_now_datetime()
+        if isoformat:
+            expired_datetime.isoformat()
+        return expired_datetime
