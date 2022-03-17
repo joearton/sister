@@ -110,8 +110,8 @@ class WebService(SisterIO, SisterCache):
         response['cache'] = False
         response['accessed_at'] = self.get_now_datetime()
         response['expired_at']  = self.get_expired_datetime(**self.cache_expired_datetime)
-        response['accessed_at_isoformat'] = str(response['accessed_at'])
-        response['expired_at_isoformat']  = str(response['expired_at'])
+        response['accessed_at_iso'] = str(response['accessed_at'])
+        response['expired_at_iso']  = str(response['expired_at'])
 
         # check whether authorization is success or not
         if not self.api_key:
@@ -124,15 +124,15 @@ class WebService(SisterIO, SisterCache):
         cache_available = self.get_cache(path_url.name())
         if cache_available.get('data'):
             response['data'] = cache_available.get('data')
-            accessed_at = cache_available.get('accessed_at')
-            expired_at  = cache_available.get('expired_at')
+            accessed_at = self.iso_to_datetime(cache_available.get('accessed_at'))
+            expired_at  = self.iso_to_datetime(cache_available.get('expired_at'))
             if self.get_now_datetime() < expired_at:
                 # update response when using cache
                 response['cache'] = True
-                response['expired_at_isoformat']  = expired_at
-                response['accessed_at_isoformat'] = accessed_at
-                response['expired_at']  = self.iso_to_datetime(expired_at)
-                response['accessed_at'] = self.iso_to_datetime(accessed_at)
+                response['accessed_at'] = accessed_at
+                response['expired_at']  = expired_at
+                response['accessed_at_iso'] = str(accessed_at)
+                response['expired_at_iso']  = str(expired_at)
                 return response
 
         # check api-key expiration
