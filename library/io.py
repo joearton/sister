@@ -37,12 +37,17 @@ class SisterIO:
 
 
     def read_config(self):
-        return self.read_file(CONFIG_FILE)
+        """Read configuration from environment variables"""
+        return ENV_CONFIG
 
 
     def update_config(self, **kwargs):
-        config = self.update_file(CONFIG_FILE, self.config, **kwargs)
-        self.config = config
+        """Update configuration (for backward compatibility)"""
+        # Note: Environment variables cannot be updated at runtime
+        # This method is kept for backward compatibility
+        print("⚠️  Warning: Environment variables cannot be updated at runtime.")
+        print("Please update your .env file directly.")
+        return self.read_config()
 
 
     def read_api_key(self):
@@ -56,28 +61,41 @@ class SisterIO:
 
 
     def check_config(self):
-        if not validators.url(self.config['sister_url']):
-            print(f"{self.config['sister_url']} is not valid URL")
+        """Check if Sister URL is valid and reachable"""
+        config = self.read_config()
+        
+        if not validators.url(config['sister_url']):
+            print(f"{config['sister_url']} is not valid URL")
             return False
+            
         try:
-            r = requests.get(self.config['sister_url'], timeout=3)
-        except:
-            print(f"{self.config['sister_url']} cant't be reached, check your URL")
+            r = requests.get(config['sister_url'], timeout=3)
+        except (requests.RequestException, requests.Timeout, requests.ConnectionError):
+            print(f"{config['sister_url']} can't be reached, check your URL")
             return False
         return True
 
 
     def get_ws_url(self):
-        ws_root_url = self.config['sister_url']
+        """Get Web Service URL from environment configuration"""
+        config = self.read_config()
+        ws_root_url = config['sister_url']
+        
         if ws_root_url.endswith('/'):
-            ws_root_url = self.config['sister_url'][:-1]
+            ws_root_url = config['sister_url'][:-1]
+            
         ws_url = self.spec.get_server('sandbox')['url']
-        if not self.config['use_sandbox']:
+        if not config['use_sandbox']:
             ws_url = self.spec.get_server('ws')['url']
+            
         return f'{ws_root_url}{ws_url}'
 
 
     def parse_path_url(self, path, **query):
+        # Input validation
+        if not path or not isinstance(path, str):
+            raise ValueError("Path must be a non-empty string")
+            
         # get more info about query here
         # so we can take more
         counter, params = 0, {}
@@ -95,7 +113,7 @@ class SisterIO:
             if param:
                 in_type = param.get('in')
             if in_type == 'path':
-                path = path.replace('{{{key}}}'.format(key=key), value)
+                path = path.replace('{{{key}}}'.format(key=key), str(value))
             else:
                 path += '?' if counter == 0 else '&'
                 path += f'{key}={value}'

@@ -1,9 +1,9 @@
-from asyncore import write
-from linecache import cache
 from library.template import SisterTemplate
 from settings import *
 import json, os, re
 import uuid 
+import threading
+import fcntl
 
 
 class AttrDict(dict):
@@ -17,6 +17,7 @@ class CacheAsJson:
 
     def __init__(self):
         self.cache_db_filename = os.path.join(CACHE_DIR,  'cache_db.json')
+        self._lock = threading.Lock()
 
 
     def get_unique_id(self, length=15):
@@ -31,9 +32,15 @@ class CacheAsJson:
         if os.path.isfile(self.cache_db_filename):
             try:
                 with open(self.cache_db_filename, 'r') as reader:
-                    db_object = json.load(reader)
+                    fcntl.flock(reader.fileno(), fcntl.LOCK_SH)  # Shared lock for reading
+                    try:
+                        db_object = json.load(reader)
+                    finally:
+                        fcntl.flock(reader.fileno(), fcntl.LOCK_UN)  # Release lock
             except json.decoder.JSONDecodeError:
                 os.remove(self.cache_db_filename)
+            except Exception as e:
+                print(f"Error reading cache file: {e}")
         if cache_id and db_object:
             cache_object = db_object.get(cache_id)
             if cache_object:
@@ -55,8 +62,15 @@ class CacheAsJson:
         cache_id = cache_object['id']
         saved_db_object = self.read_db()
         saved_db_object[cache_id] = cache_object
-        with open(self.cache_db_filename, 'w') as writer:
-            json.dump(saved_db_object, writer)
+        try:
+            with open(self.cache_db_filename, 'w') as writer:
+                fcntl.flock(writer.fileno(), fcntl.LOCK_EX)  # Exclusive lock for writing
+                try:
+                    json.dump(saved_db_object, writer)
+                finally:
+                    fcntl.flock(writer.fileno(), fcntl.LOCK_UN)  # Release lock
+        except Exception as e:
+            print(f"Error writing cache file: {e}")
 
 
     def save(self, cache_object: dict):
@@ -76,9 +90,97 @@ class CacheAsJson:
         if cache_id in db_object:
             deleted_object = db_object[cache_id]
             db_object.pop(cache_id, None)
-            with open(self.cache_db_filename, 'w') as writer:
-                json.dump(db_object, writer)
+            try:
+                with open(self.cache_db_filename, 'w') as writer:
+                    fcntl.flock(writer.fileno(), fcntl.LOCK_EX)  # Exclusive lock for writing
+                    try:
+                        json.dump(db_object, writer)
+                    finally:
+                        fcntl.flock(writer.fileno(), fcntl.LOCK_UN)  # Release lock
+            except Exception as e:
+                print(f"Error deleting cache item: {e}")
         return deleted_object
+
+
+    def get_all_cache_ids(self):
+        """Get all cache IDs from database"""
+        db_object = self.read_db()
+        return list(db_object.keys())
+
+
+    def cleanup_expired_cache(self, cache_manager):
+        """Remove all expired cache entries"""
+        db_object = self.read_db()
+        expired_count = 0
+        removed_files = []
+        
+        for cache_id, cache_object in list(db_object.items()):
+            try:
+                # Check if cache is expired
+                expired_at = cache_object.get('expired_at')
+                if expired_at:
+                    expired_datetime = cache_manager.iso_to_datetime(expired_at)
+                    current_datetime = cache_manager.get_now_datetime()
+                    
+                    if current_datetime > expired_datetime:
+                        # Cache is expired, remove it
+                        filepath = cache_object.get('filepath')
+                        if filepath and os.path.isfile(filepath):
+                            try:
+                                os.remove(filepath)
+                                removed_files.append(filepath)
+                            except OSError as e:
+                                print(f"Error removing cache file {filepath}: {e}")
+                        
+                        # Remove from database
+                        db_object.pop(cache_id, None)
+                        expired_count += 1
+                        
+            except Exception as e:
+                print(f"Error checking cache expiration for {cache_id}: {e}")
+                # Remove corrupted cache entry
+                db_object.pop(cache_id, None)
+                expired_count += 1
+        
+        # Save updated database
+        if expired_count > 0:
+            try:
+                with open(self.cache_db_filename, 'w') as writer:
+                    fcntl.flock(writer.fileno(), fcntl.LOCK_EX)
+                    try:
+                        json.dump(db_object, writer)
+                    finally:
+                        fcntl.flock(writer.fileno(), fcntl.LOCK_UN)
+            except Exception as e:
+                print(f"Error saving cache database after cleanup: {e}")
+        
+        return {
+            'expired_count': expired_count,
+            'removed_files': removed_files,
+            'remaining_cache': len(db_object)
+        }
+
+
+    def get_cache_stats(self):
+        """Get cache statistics"""
+        db_object = self.read_db()
+        total_cache = len(db_object)
+        total_size = 0
+        expired_count = 0
+        
+        for cache_id, cache_object in db_object.items():
+            filepath = cache_object.get('filepath')
+            if filepath and os.path.isfile(filepath):
+                try:
+                    total_size += os.path.getsize(filepath)
+                except OSError:
+                    pass
+        
+        return {
+            'total_cache_entries': total_cache,
+            'total_size_bytes': total_size,
+            'total_size_mb': round(total_size / (1024 * 1024), 2)
+        }
 
 
 
@@ -181,4 +283,65 @@ class SisterCache(SisterTemplate):
             if cache_object:
                 cache_object['data'] = self.read_cache_file(cache_object)
         return cache_object
+
+
+    def cleanup_expired_cache(self):
+        """Remove all expired cache entries"""
+        return self.cache_db_class.cleanup_expired_cache(self)
+
+
+    def get_cache_stats(self):
+        """Get cache statistics"""
+        return self.cache_db_class.get_cache_stats()
+
+
+    def clear_all_cache(self):
+        """Clear all cache entries"""
+        db_object = self.cache_db_class.read_db()
+        removed_count = 0
+        
+        for cache_id, cache_object in db_object.items():
+            filepath = cache_object.get('filepath')
+            if filepath and os.path.isfile(filepath):
+                try:
+                    os.remove(filepath)
+                    removed_count += 1
+                except OSError as e:
+                    print(f"Error removing cache file {filepath}: {e}")
+        
+        # Clear database
+        try:
+            with open(self.cache_db_class.cache_db_filename, 'w') as writer:
+                fcntl.flock(writer.fileno(), fcntl.LOCK_EX)
+                try:
+                    json.dump({}, writer)
+                finally:
+                    fcntl.flock(writer.fileno(), fcntl.LOCK_UN)
+        except Exception as e:
+            print(f"Error clearing cache database: {e}")
+        
+        return {
+            'removed_files': removed_count,
+            'cleared_database': True
+        }
+
+
+    def delete_cache_by_path(self, path):
+        """Delete specific cache by path"""
+        cache_id = self.path_as_io(path)
+        cache_object = self.cache_db_class.get(cache_id)
+        
+        if cache_object:
+            filepath = cache_object.get('filepath')
+            if filepath and os.path.isfile(filepath):
+                try:
+                    os.remove(filepath)
+                except OSError as e:
+                    print(f"Error removing cache file {filepath}: {e}")
+            
+            # Remove from database
+            self.cache_db_class.delete(cache_id)
+            return True
+        
+        return False
 

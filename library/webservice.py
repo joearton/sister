@@ -15,9 +15,16 @@ class WebService(SisterIO, SisterCache):
         self.spec = SisterSpec()
         self.config  = self.read_config()
         self.token_expired_datetime = {"minutes": 60}
-        self.cache_expired_datetime = {"days": 1}
+        
+        # Use environment variables for cache configuration
+        self.cache_expired_datetime = {"days": ENV_CONFIG['cache_expiration_days']}
+        
         self.use_cache()
         self.read_and_validate_api()
+        
+        # Enable auto cleanup if configured
+        if ENV_CONFIG['auto_cleanup_cache']:
+            self.enable_auto_cleanup(True)
 
 
     def use_cache(self, status=True):
@@ -27,10 +34,17 @@ class WebService(SisterIO, SisterCache):
     def read_and_validate_api(self):
         try:
             self.api_key = self.read_api_key()
-        except json.decoder.JSONDecodeError:
-            os.remove(API_KEY_FILE)
-        finally:
-            self.api_key = self.read_api_key()
+        except (json.decoder.JSONDecodeError, FileNotFoundError):
+            # Remove corrupted API key file and create new one
+            if os.path.exists(API_KEY_FILE):
+                try:
+                    os.remove(API_KEY_FILE)
+                except OSError as e:
+                    print(f"Error removing corrupted API key file: {e}")
+            self.api_key = {}
+        except Exception as e:
+            print(f"Unexpected error reading API key: {e}")
+            self.api_key = {}
 
 
     def request_api_key(self):
@@ -70,7 +84,7 @@ class WebService(SisterIO, SisterCache):
                     response['message'] = "API key invalid, check your credential"
                     return self.parse_response(response)
                 self.request_api_key()
-                self.get_data(path, True, **kwargs)
+                return self.get_data(path, True, **kwargs)
             else:
                 response['message'] = json_object['message']
                 response['detail']  = json_object['detail']
@@ -103,6 +117,12 @@ class WebService(SisterIO, SisterCache):
 
 
     def get_data(self, path, fresh_api_key=False, **kwargs):
+        # Input validation
+        if not path or not isinstance(path, str):
+            response = self.response_template()
+            response['message'] = 'Invalid path parameter'
+            return self.parse_response(response)
+            
         response = self.response_template()
         path_url = self.parse_path_url(path, **kwargs)
 
@@ -119,6 +139,10 @@ class WebService(SisterIO, SisterCache):
             if not api_key['status'] == True:
                 return api_key        
             self.read_and_validate_api()
+
+        # Auto-cleanup expired cache (optional, can be disabled)
+        if hasattr(self, 'auto_cleanup_cache') and self.auto_cleanup_cache:
+            self.cleanup_expired_cache()
 
         # check from cache
         cache_available = self.get_cache(path_url.name())
@@ -152,4 +176,37 @@ class WebService(SisterIO, SisterCache):
         self.save_cache(path_url.name(), response, **self.cache_expired_datetime)
 
         return response
+
+
+    def enable_auto_cleanup(self, status=True):
+        """Enable or disable automatic cache cleanup"""
+        self.auto_cleanup_cache = status
+
+
+    def cleanup_expired_cache(self):
+        """Manually cleanup expired cache entries"""
+        if hasattr(self, 'caching_system') and self.caching_system:
+            return super().cleanup_expired_cache()
+        return {'expired_count': 0, 'removed_files': [], 'remaining_cache': 0}
+
+
+    def get_cache_stats(self):
+        """Get cache statistics"""
+        if hasattr(self, 'caching_system') and self.caching_system:
+            return super().get_cache_stats()
+        return {'total_cache_entries': 0, 'total_size_bytes': 0, 'total_size_mb': 0}
+
+
+    def clear_all_cache(self):
+        """Clear all cache entries"""
+        if hasattr(self, 'caching_system') and self.caching_system:
+            return super().clear_all_cache()
+        return {'removed_files': 0, 'cleared_database': False}
+
+
+    def delete_cache_by_path(self, path):
+        """Delete specific cache by path"""
+        if hasattr(self, 'caching_system') and self.caching_system:
+            return super().delete_cache_by_path(path)
+        return False
     

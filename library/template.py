@@ -1,6 +1,7 @@
 import json
 from datetime import datetime, timedelta
 from subprocess import call 
+from settings import ENV_CONFIG
 
 
 class Response(dict):
@@ -32,10 +33,12 @@ class SisterTemplate:
 
 
     def get_auth_data(self):
+        """Get authentication data from environment variables"""
+        config = ENV_CONFIG
         auth_data = {
-            "username"      : self.config['username'],
-            "password"      : self.config['password'],
-            "id_pengguna"   : self.config['id_pengguna']
+            "username"      : config['username'],
+            "password"      : config['password'],
+            "id_pengguna"   : config['id_pengguna']
         }
         return auth_data
 
@@ -43,9 +46,9 @@ class SisterTemplate:
     def is_json(self, text):
         try:
             json_object = json.loads(text)
-        except:
+        except (json.JSONDecodeError, TypeError, ValueError):
             json_object = {}
-        return json_object 
+        return json_object
 
 
     def parse_response(self, response, as_json=False):
@@ -58,8 +61,23 @@ class SisterTemplate:
 
 
     def iso_to_datetime(self, iso_datetime):
-        iso_format = "%Y-%m-%d %H:%M:%S.%f"
-        dt_format  = datetime.strptime(iso_datetime, iso_format)
+        try:
+            # Try ISO format first
+            iso_format = "%Y-%m-%dT%H:%M:%S.%f"
+            dt_format = datetime.strptime(iso_datetime, iso_format)
+        except ValueError:
+            try:
+                # Try without microseconds
+                iso_format = "%Y-%m-%dT%H:%M:%S"
+                dt_format = datetime.strptime(iso_datetime, iso_format)
+            except ValueError:
+                try:
+                    # Try old format
+                    old_format = "%Y-%m-%d %H:%M:%S.%f"
+                    dt_format = datetime.strptime(iso_datetime, old_format)
+                except ValueError:
+                    # If all fail, return current datetime
+                    dt_format = datetime.now()
         return dt_format
 
 
@@ -67,14 +85,15 @@ class SisterTemplate:
         # created for json dumps 
         current_datetime = datetime.now()
         if isoformat:
-            current_datetime.isoformat()
+            return current_datetime.isoformat()
         return current_datetime
 
     
     def get_expired_datetime(self, old_datetime=None, isoformat=False, **expired_set):
         if old_datetime:
             expired_datetime = timedelta(**expired_set) + old_datetime
-        expired_datetime = timedelta(**expired_set) + self.get_now_datetime()
+        else:
+            expired_datetime = timedelta(**expired_set) + self.get_now_datetime()
         if isoformat:
-            expired_datetime.isoformat()
+            return expired_datetime.isoformat()
         return expired_datetime

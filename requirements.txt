@@ -1,3 +1,10 @@
-requests[use_chardet_on_py3]==2.26.0
-validators
-pyyaml
+# Core dependencies
+requests==2.26.0
+validators==0.35.0
+pyyaml==6.0.2
+python-dotenv==1.1.1
+
+# Development dependencies (optional)
+# pytest==7.4.0
+# black==23.7.0
+# flake8==6.0.0

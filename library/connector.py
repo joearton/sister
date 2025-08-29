@@ -7,7 +7,7 @@ class BearerAuth(requests.auth.AuthBase):
         self.token = token
 
     def __call__(self, r):
-        r.headers["Authorization"] = "Accept: application/json"
+        r.headers["Accept"] = "application/json"
         r.headers["Authorization"] = "Bearer " + self.token
         return r
 

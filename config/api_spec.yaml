@@ -171,6 +171,9 @@ tags:
   - name: Tunjangan
     description: Reward - tunjangan
     x-tag-expanded: false
+  - name: BKD
+    description: Beban Kerja Dosen
+    x-tag-expanded: false
 paths:
   /authorize:
     post:
@@ -259,6 +262,35 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ReferensiUnitKerjaResult"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/GeneralError"
+  /referensi/detail_unit_kerja:
+    get:
+      tags:
+        - Referensi
+      summary: Detail Unit kerja di perguruan tinggi
+      security:
+        - Bearer: []
+      parameters:
+        - in: query
+          name: id_unit_kerja
+          example: "c6228784-0b80-4e0a-b72d-d3203e44d907"
+          required: true
+          description: ID unit kerja dari endpoint [/referensi/unit_kerja](#get-/referensi/unit_kerja)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Detail unit kerja pada perguruan tinggi tersebut
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferensiDetailUnitKerjaResult"
         401:
           $ref: "#/components/responses/Unauthorized"
         500:
@@ -364,6 +396,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ReferensiIntegerResult"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/GeneralError"
+  /referensi/dudi:
+    get:
+      tags:
+        - Referensi
+      summary: Mitra litabmas / DUDI
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Data mitra litabmas / dunia usaha dan dunia industri (DUDI) (ID dan nama)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferensiUuidResult"
         401:
           $ref: "#/components/responses/Unauthorized"
         500:
@@ -507,6 +559,26 @@ paths:
       responses:
         200:
           description: Data jabatan tugas tambahan (ID dan nama jenis)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferensiIntegerResult"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/GeneralError"
+  /referensi/jenis_bahan_ajar:
+    get:
+      tags:
+        - Referensi
+      summary: Jenis bahan ajar
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Data jenis bahan ajar (ID dan nama jenis)
           content:
             application/json:
               schema:
@@ -726,6 +798,26 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         500:
           $ref: "#/components/responses/GeneralError"
+  /referensi/jenjang_pendidikan:
+    get:
+      tags:
+        - Referensi
+      summary: Jenjang pendidikan
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Data jenjang pendidikan (ID dan nama)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferensiIntegerResult"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/GeneralError"
   /referensi/profil_pt:
     get:
       tags:
@@ -763,6 +855,26 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ReferensiIntegerResult"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/GeneralError"
+  /referensi/skim_kegiatan:
+    get:
+      tags:
+        - Referensi
+      summary: Skim kegiatan
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: Data Skim Kegiatan (ID dan nama)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferensiUuidResult"
         401:
           $ref: "#/components/responses/Unauthorized"
         500:
@@ -872,22 +984,22 @@ paths:
           schema:
             type: string
             enum:
-              - anggota_profesi 
-              - bahan_ajar 
-              - detasering 
-              - diklat 
-              - kekayaan_intelektual 
-              - jabatan_struktural 
-              - orasi_ilmiah 
-              - penelitian 
-              - pembicara 
-              - pengabdian 
-              - pengelola_jurnal 
-              - penghargaan 
-              - penunjang_lain 
-              - publikasi 
-              - tugas_tambahan 
-              - visiting_scientist 
+              - anggota_profesi
+              - bahan_ajar
+              - detasering
+              - diklat
+              - kekayaan_intelektual
+              - jabatan_struktural
+              - orasi_ilmiah
+              - penelitian
+              - pembicara
+              - pengabdian
+              - pengelola_jurnal
+              - penghargaan
+              - penunjang_lain
+              - publikasi
+              - tugas_tambahan
+              - visiting_scientist
       responses:
         200:
           description: Data kategori kegiatan. Bentuk data bergantung pada parameter `tipe`.
@@ -935,6 +1047,26 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         500:
           $ref: "#/components/responses/GeneralError"
+  /referensi/lembaga_sertifikasi:
+    get:
+      tags:
+        - Referensi
+      summary: Lembaga Sertifikasi
+      security:
+        - Bearer: [ ]
+      responses:
+        200:
+          description: Data lembaga sertifikasi (ID dan nama lembaga sertifikasi)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferensiIntegerResult"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        500:
+          $ref: "#/components/responses/GeneralError"
   /referensi/wilayah:
     get:
       tags:
@@ -977,10 +1109,18 @@ paths:
         - Bearer: []
       parameters:
         - in: query
+          name: id_sp
+          example: 1782f838-f5dd-485c-b29e-00339227c4d0
+          required: false
+          description: Keyword ID SP untuk pencarian, bila menggunakan parameter ini, parameter nama harus diisi minimal 3 karakter
+          schema:
+            type: string
+            format: string
+        - in: query
           name: nama
           example: dean
           required: false
-          description: Keyword nama untuk pencarian
+          description: Keyword nama untuk pencarian, bila menggunakan id_sp, parameter ini harus diisi minimal 3 karakter
           schema:
             type: string
             format: string
@@ -997,6 +1137,14 @@ paths:
           example: 190010101900101003
           required: false
           description: Keyword NIP untuk pencarian
+          schema:
+            type: string
+            format: string
+        - in: query
+          name: nuptk
+          example: 4723786869032232
+          required: false
+          description: Keyword NUPTK untuk pencarian
           schema:
             type: string
             format: string
@@ -1353,56 +1501,6 @@ paths:
           $ref: "#/components/responses/Forbidden"
         500:
           $ref: "#/components/responses/GeneralError"
-  /data_pribadi/ajuan:
-    get:
-      tags:
-        - Data Pokok
-      summary: List ajuan data pokok
-      parameters:
-        - $ref: "#/components/parameters/id_sdm"
-      security:
-        - Bearer: []
-      responses:
-        200:
-          description: List data ajuan data pokok
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AjuanPddGetItem"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/GeneralError"
-  /data_pribadi/ajuan/{id}:
-    get:
-      tags:
-        - Data Pokok
-      summary: Detail ajuan data pokok
-      security:
-        - Bearer: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: ID ajuan data pokok
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          description: Detail ajuan data pokok
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AjuanPddGetDetail"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/GeneralError"
   /inpassing:
     get:
       tags:
@@ -1746,32 +1844,6 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         500:
           $ref: "#/components/responses/GeneralError"
-    post:
-      tags:
-        - Kepangkatan
-      summary: Menambahkan data kepangkatan baru
-      description: User WS-BASIC akan membuat ajuan penambahan, sedangkan user WS-PRO akan langsung menambahkan data kepangkatan.
-      security:
-        - Bearer: []
-      requestBody:
-        $ref: "#/components/requestBodies/KepangkatanPostBody"
-      responses:
-        200:
-          description: Jika sukses akan mengembalikan ID riwayat kepangkatan yang dibuat (WS-PRO)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NewUUIDResponse"
-        204:
-          description: Jika sukses tidak mengembalikan hasil apapun (WS-BASIC). Daftar ajuan dapat dilihat pada endpoint /kepangkatan/ajuan.
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        409:
-          $ref: "#/components/responses/Duplicate"
-        500:
-          $ref: "#/components/responses/GeneralError"
   /kepangkatan/{id}:
     get:
       tags:
@@ -1794,120 +1866,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/KepangkatanGetDetail"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/GeneralError"
-    delete:
-      tags:
-        - Kepangkatan
-      summary: Menghapus data kepangkatan
-      description: User WS-BASIC akan membuat ajuan penghapusan, sedangkan user WS-PRO akan langsung menghapus data kepangkatan.
-      security:
-        - Bearer: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: ID riwayat kepangkatan
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        $ref: "#/components/requestBodies/AjuanPddHapusPostBody"
-      responses:
-        204:
-          description: Jika sukses tidak mengembalikan hasil apapun (response kosong)
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/GeneralError"
-    put:
-      tags:
-        - Kepangkatan
-      summary: Mengubah data kepangkatan
-      description: User WS-BASIC akan membuat ajuan perubahan, sedangkan user WS-PRO akan langsung mengubah data kepangkatan.
-      security:
-        - Bearer: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: ID riwayat kepangkatan
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        $ref: "#/components/requestBodies/KepangkatanPostBody"
-      responses:
-        200:
-          description: Jika sukses mengembalikan detail dari kepangkatan (WS-PRO)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/KepangkatanGetDetail"
-        204:
-          description: Jika sukses tidak mengembalikan hasil apapun (WS-BASIC). Daftar ajuan dapat dilihat pada endpoint /kepangkatan/ajuan.
-        400:
-          $ref: "#/components/responses/BadRequest"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        403:
-          $ref: "#/components/responses/Forbidden"
-        404:
-          $ref: "#/components/responses/NotFound"
-        500:
-          $ref: "#/components/responses/GeneralError"
-  /kepangkatan/ajuan:
-    get:
-      tags:
-        - Kepangkatan
-      summary: List ajuan kepangkatan
-      parameters:
-        - $ref: "#/components/parameters/id_sdm"
-      security:
-        - Bearer: []
-      responses:
-        200:
-          description: List data ajuan kepangkatan
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AjuanPddGetItem"
-        401:
-          $ref: "#/components/responses/Unauthorized"
-        500:
-          $ref: "#/components/responses/GeneralError"
-  /kepangkatan/ajuan/{id}:
-    get:
-      tags:
-        - Kepangkatan
-      summary: Detail ajuan kepangkatan
-      security:
-        - Bearer: []
-      parameters:
-        - in: path
-          name: id
-          required: true
-          description: ID ajuan kepangkatan
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          description: Detail ajuan kepangkatan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AjuanPddGetDetail"
         401:
           $ref: "#/components/responses/Unauthorized"
         404:
@@ -3018,6 +2976,8 @@ paths:
       summary: List data penelitian
       parameters:
         - $ref: "#/components/parameters/id_sdm"
+        - $ref: "#/components/parameters/per_page"
+        - $ref: "#/components/parameters/page"
       security:
         - Bearer: []
       responses:
@@ -3206,6 +3166,8 @@ paths:
       summary: List data publikasi
       parameters:
         - $ref: "#/components/parameters/id_sdm"
+        - $ref: "#/components/parameters/per_page"
+        - $ref: "#/components/parameters/page"
       security:
         - Bearer: []
       responses:
@@ -3394,6 +3356,8 @@ paths:
       summary: List data pengabdian
       parameters:
         - $ref: "#/components/parameters/id_sdm"
+        - $ref: "#/components/parameters/per_page"
+        - $ref: "#/components/parameters/page"
       security:
         - Bearer: []
       responses:
@@ -4239,6 +4203,8 @@ paths:
       summary: List data penunjang lain
       parameters:
         - $ref: "#/components/parameters/id_sdm"
+        - $ref: "#/components/parameters/per_page"
+        - $ref: "#/components/parameters/page"
       security:
         - Bearer: []
       responses:
@@ -4368,6 +4334,8 @@ paths:
       summary: List data paten / kekayaan intelektual
       parameters:
         - $ref: "#/components/parameters/id_sdm"
+        - $ref: "#/components/parameters/per_page"
+        - $ref: "#/components/parameters/page"
       security:
         - Bearer: []
       responses:
@@ -6173,6 +6141,459 @@ paths:
           $ref: "#/components/responses/NotFound"
         500:
           $ref: "#/components/responses/GeneralError"
+  /bkd/laporan_akhir_bkd:
+      get:
+        tags:
+          - BKD
+        summary: Laporan Akhir BKD
+        security:
+          - Bearer: []
+        parameters:
+          - $ref: "#/components/parameters/id_sdm"
+        responses:
+          200:
+            description: Data Laporan Akhir BKD
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id_reg_ptk:
+                        type: uuid
+                        description: ID Registrasi PTK
+                        example: "00000000-0000-0000-0000-000000000000"
+                      id_smt:
+                        type: bpchar
+                        description: ID Semester
+                        example: "20221"
+                      sks_kinerja_ajar:
+                        type: numeric
+                        description: SKS Kinerja Ajar
+                        example: "11.5000"
+                      sks_lebih_ajar:
+                        type: numeric
+                        description: SKS Lebih Ajar
+                        example: "11.4375"
+                      sks_kinerja_didik:
+                        type: numeric
+                        description: SKS Kinerja Didik
+                        example: "0.0000"
+                      sks_lebih_didik:
+                        type: numeric
+                        description: SKS Lebih Didik
+                        example: "0.0000"
+                      sks_kinerja_lit:
+                        type: numeric
+                        description: SKS Kinerja Lit
+                        example: "0.4001"
+                      sks_lebih_lit:
+                        type: numeric
+                        description: SKS Lebih Lit
+                        example: "5.0000"
+                      sks_kinerja_pengmas:
+                        type: numeric
+                        description: SKS Kinerja Pengmas
+                        example: "2.2500"
+                      sks_lebih_pengmas:
+                        type: numeric
+                        description: SKS Lebih Pengmas
+                        example: "0.0000"
+                      sks_kinerja_penunjang:
+                        type: numeric
+                        description: SKS Kinerja Penunjang
+                        example: "0.5000"
+                      sks_lebih_tunjang:
+                        type: numeric
+                        description: SKS Lebih Tunjang
+                        example: "0.0000"
+                      sks_kinerja:
+                        type: numeric
+                        description: SKS Kinerja
+                        example: "14.6501"
+                      sks_lebih:
+                        type: numeric
+                        description: SKS Lebih
+                        example: "16.4375"
+                      stat_kewajiban:
+                        type: numeric
+                        description: Status Kewajiban
+                        example: "1"
+                      stat_tugas:
+                        type: bpchar
+                        description: Status Tugas
+                        example: "B"
+                      stat_belajar:
+                        type: bpchar
+                        description: Status Belajar
+                        example: "A"
+                      id_jabfung:
+                        type: numeric
+                        description: ID Jabatan Fungsional
+                        example: "43"
+                      simpulan_asesor:
+                        type: bpchar
+                        description: Simpulan Asesor
+                        example: "M"
+          400:
+            $ref: "#/components/responses/BadRequest"
+          401:
+            $ref: "#/components/responses/Unauthorized"
+          404:
+            $ref: "#/components/responses/NotFound"
+          500:
+            $ref: "#/components/responses/GeneralError"
+  /bkd/pendidikan:
+      get:
+        tags:
+          - BKD
+        summary: List data BKD pendidikan berdasarkan semester
+        security:
+          - Bearer: []
+        parameters:
+          - $ref: "#/components/parameters/id_sdm"
+          - in: query
+            name: id_smt
+            required: true
+            description: ID semester dari [/referensi/semester](#get-/referensi/semester).
+            example: "20201"
+            schema:
+              type: string
+        responses:
+          200:
+            description: Data BKD pendidikan berdasarkan semester
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      nm_sdm:
+                        type: string
+                        description: Nama Dosen
+                        example: FULAN SUBARKAH
+                      nidn:
+                        type: string
+                        description: Nomor Induk Dosen Nasional
+                        example: 2264101121
+                      id_smt:
+                        type: string
+                        description: ID Semester
+                        example: 20201
+                      unsur:
+                        type: string
+                        description: Unsur BKD
+                        example: Pendidikan
+                      judul_keg:
+                        type: string
+                        description: Judul Kegiatan
+                        example: Doktor
+                      id_katgiat:
+                        type: integer
+                        description: ID Kategori Kegiatan
+                        example: 100101
+                      nm_kat:
+                        type: string
+                        description: Nama Kategori
+                        example: Doktor
+                      beban_sks:
+                        type: number
+                        description: Beban SKS
+                        example: 12
+                      nilai:
+                        type: number
+                        description: Nilai BKD
+                        example: 12
+          400:
+            $ref: "#/components/responses/BadRequest"
+          401:
+            $ref: "#/components/responses/Unauthorized"
+          404:
+            $ref: "#/components/responses/NotFound"
+          500:
+            $ref: "#/components/responses/GeneralError"
+  /bkd/ajar:
+      get:
+        tags:
+          - BKD
+        summary: List data BKD pengajaran berdasarkan semester
+        security:
+          - Bearer: []
+        parameters:
+          - $ref: "#/components/parameters/id_sdm"
+          - in: query
+            name: id_smt
+            required: true
+            description: ID semester dari [/referensi/semester](#get-/referensi/semester).
+            example: "20201"
+            schema:
+              type: string
+        responses:
+          200:
+            description: Data BKD pengajaran berdasarkan semester
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      nm_sdm:
+                        type: string
+                        description: Nama Dosen
+                        example: FULAN SUBARKAH
+                      nidn:
+                        type: string
+                        description: Nomor Induk Dosen Nasional
+                        example: 2264101121
+                      id_smt:
+                        type: string
+                        description: ID Semester
+                        example: 20201
+                      unsur:
+                        type: string
+                        description: Unsur BKD
+                        example: Pendidikan
+                      judul_keg:
+                        type: string
+                        description: Judul Kegiatan
+                        example: Doktor
+                      id_katgiat:
+                        type: integer
+                        description: ID Kategori Kegiatan
+                        example: 100101
+                      nm_kat:
+                        type: string
+                        description: Nama Kategori
+                        example: Doktor
+                      beban_sks:
+                        type: number
+                        description: Beban SKS
+                        example: 12
+                      nilai:
+                        type: number
+                        description: Nilai BKD
+                        example: 12
+          400:
+            $ref: "#/components/responses/BadRequest"
+          401:
+            $ref: "#/components/responses/Unauthorized"
+          404:
+            $ref: "#/components/responses/NotFound"
+          500:
+            $ref: "#/components/responses/GeneralError"
+  /bkd/tunjang:
+      get:
+        tags:
+          - BKD
+        summary: List data BKD penunjang berdasarkan semester
+        security:
+          - Bearer: []
+        parameters:
+          - $ref: "#/components/parameters/id_sdm"
+          - in: query
+            name: id_smt
+            required: true
+            description: ID semester dari [/referensi/semester](#get-/referensi/semester).
+            example: "20201"
+            schema:
+              type: string
+        responses:
+          200:
+            description: Data BKD penunjang berdasarkan semester
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      nm_sdm:
+                        type: string
+                        description: Nama Dosen
+                        example: FULAN SUBARKAH
+                      nidn:
+                        type: string
+                        description: Nomor Induk Dosen Nasional
+                        example: 2264101121
+                      id_smt:
+                        type: string
+                        description: ID Semester
+                        example: 20201
+                      unsur:
+                        type: string
+                        description: Unsur BKD
+                        example: Pendidikan
+                      judul_keg:
+                        type: string
+                        description: Judul Kegiatan
+                        example: Doktor
+                      id_katgiat:
+                        type: integer
+                        description: ID Kategori Kegiatan
+                        example: 100101
+                      nm_kat:
+                        type: string
+                        description: Nama Kategori
+                        example: Doktor
+                      beban_sks:
+                        type: number
+                        description: Beban SKS
+                        example: 12
+                      nilai:
+                        type: number
+                        description: Nilai BKD
+                        example: 12
+          400:
+            $ref: "#/components/responses/BadRequest"
+          401:
+            $ref: "#/components/responses/Unauthorized"
+          404:
+            $ref: "#/components/responses/NotFound"
+          500:
+            $ref: "#/components/responses/GeneralError"
+  /bkd/pengmas:
+      get:
+        tags:
+          - BKD
+        summary: List data BKD pengmas berdasarkan semester
+        security:
+          - Bearer: []
+        parameters:
+          - $ref: "#/components/parameters/id_sdm"
+          - in: query
+            name: id_smt
+            required: true
+            description: ID semester dari [/referensi/semester](#get-/referensi/semester).
+            example: "20201"
+            schema:
+              type: string
+        responses:
+          200:
+            description: Data BKD pengmas berdasarkan semester
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      nm_sdm:
+                        type: string
+                        description: Nama Dosen
+                        example: FULAN SUBARKAH
+                      nidn:
+                        type: string
+                        description: Nomor Induk Dosen Nasional
+                        example: 2264101121
+                      id_smt:
+                        type: string
+                        description: ID Semester
+                        example: 20201
+                      unsur:
+                        type: string
+                        description: Unsur BKD
+                        example: Pendidikan
+                      judul_keg:
+                        type: string
+                        description: Judul Kegiatan
+                        example: Doktor
+                      id_katgiat:
+                        type: integer
+                        description: ID Kategori Kegiatan
+                        example: 100101
+                      nm_kat:
+                        type: string
+                        description: Nama Kategori
+                        example: Doktor
+                      beban_sks:
+                        type: number
+                        description: Beban SKS
+                        example: 12
+                      nilai:
+                        type: number
+                        description: Nilai BKD
+                        example: 12
+          400:
+            $ref: "#/components/responses/BadRequest"
+          401:
+            $ref: "#/components/responses/Unauthorized"
+          404:
+            $ref: "#/components/responses/NotFound"
+          500:
+            $ref: "#/components/responses/GeneralError"
+  /bkd/penelitian:
+      get:
+        tags:
+          - BKD
+        summary: List data BKD penelitian berdasarkan semester
+        security:
+          - Bearer: []
+        parameters:
+          - $ref: "#/components/parameters/id_sdm"
+          - in: query
+            name: id_smt
+            required: true
+            description: ID semester dari [/referensi/semester](#get-/referensi/semester).
+            example: "20201"
+            schema:
+              type: string
+        responses:
+          200:
+            description: Data BKD penelitian berdasarkan semester
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      nm_sdm:
+                        type: string
+                        description: Nama Dosen
+                        example: FULAN SUBARKAH
+                      nidn:
+                        type: string
+                        description: Nomor Induk Dosen Nasional
+                        example: 2264101121
+                      id_smt:
+                        type: string
+                        description: ID Semester
+                        example: 20201
+                      unsur:
+                        type: string
+                        description: Unsur BKD
+                        example: Pendidikan
+                      judul_keg:
+                        type: string
+                        description: Judul Kegiatan
+                        example: Doktor
+                      id_katgiat:
+                        type: integer
+                        description: ID Kategori Kegiatan
+                        example: 100101
+                      nm_kat:
+                        type: string
+                        description: Nama Kategori
+                        example: Doktor
+                      beban_sks:
+                        type: number
+                        description: Beban SKS
+                        example: 12
+                      nilai:
+                        type: number
+                        description: Nilai BKD
+                        example: 12
+          400:
+            $ref: "#/components/responses/BadRequest"
+          401:
+            $ref: "#/components/responses/Unauthorized"
+          404:
+            $ref: "#/components/responses/NotFound"
+          500:
+            $ref: "#/components/responses/GeneralError"
 components:
   securitySchemes:
     Bearer:
@@ -6181,6 +6602,26 @@ components:
       description: Token yang didapat dari [/authorize](#post-/authorize) (awali dengan `Bearer ` diikuti spasi)
       in: header
   parameters:
+    page:
+      in: query
+      name: page
+      required: false
+      example: 1
+      description: Page/Halaman
+      default: 1
+      schema:
+        type: integer
+        default: 1
+    per_page:
+      in: query
+      name: per_page
+      required: false
+      example: 100
+      description: Rows per Page/Jumlah data per halaman
+      default: 100
+      schema:
+        type: integer
+        default: 100
     id_sdm:
       in: query
       name: id_sdm
@@ -6544,29 +6985,29 @@ components:
           format: uuid
           description: ID PT
           example: "4a25fe6e-ed7f-4671-934c-46434701e184"
-        kode_perguruan_tinggi: 
+        kode_perguruan_tinggi:
           type: string
           description: Kode PT
           example: "006003"
-        nama_perguruan_tinggi: 
+        nama_perguruan_tinggi:
           type: string
           example: Akademi Komunitas Negeri Aceh Barat
-        telepon: 
+        telepon:
           type: string
           example: "06557110271"
-        faximile: 
+        faximile:
           type: string
           example: "06557110271"
-        email: 
+        email:
           type: string
           example: info@aknacehbarat.ac.id
-        website: 
+        website:
           type: string
           example: http://aknacehbarat.ac.id/
-        jalan: 
+        jalan:
           type: string
           example: Jalan Iskandar Muda Komplek STTU Alue Penyareng
-        dusun: 
+        dusun:
           type: string
           example: null
         rt:
@@ -6575,44 +7016,44 @@ components:
         rw:
           type: integer
           example: 88
-        kelurahan: 
+        kelurahan:
           type: string
-          example: 
-        kode_pos: 
+          example:
+        kode_pos:
           type: string
-          example:      
-        id_wilayah: 
+          example:
+        id_wilayah:
           type: string
           example: "060612"
-        nama_wilayah: 
+        nama_wilayah:
           type: string
-          example: Kec. Meureubo                 
-        lintang: 
+          example: Kec. Meureubo
+        lintang:
           type: number
           example: 4.1383730
-        bujur: 
+        bujur:
           type: number
           example: 96.2106520
         sk_pendirian:
           type: string
           example: Permendikbud 155 Tahun 2014
-        tanggal_sk_pendirian: 
+        tanggal_sk_pendirian:
           type: string
           format: date
           example: "2014-10-17"
-        id_status_milik: 
+        id_status_milik:
           type: string
           example: 1
-        nama_status_milik: 
+        nama_status_milik:
           type: string
           example: Pemerintah Pusat
-        status_perguruan_tinggi: 
+        status_perguruan_tinggi:
           type: string
           example: A
-        sk_izin_operasional: 
+        sk_izin_operasional:
           type: string
           format: nullable
-        tanggal_izin_operasional: 
+        tanggal_izin_operasional:
           type: string
           format: nullable
     ReferensiUnitKerjaResult:
@@ -6640,6 +7081,83 @@ components:
                 - 8
           description: 1=Fakultas, 2=Jurusan, 3=Program Studi, 4=Laboratorium, 5=UPT, 6=Penyelenggara MKU, 7=Rektorat, 8=Unit Kerja
           example: 1
+    ReferensiDetailUnitKerjaResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID objek
+          example: "b2f68ea2-06c0-4a72-ac4f-cf8e3e3dd4dd"
+        kode_unit:
+          type: string
+          description: Kode unit kerja
+          example: Kode Unit Kerja
+        nama:
+          type: string
+          description: Nama unit kerja
+          example: Nama Unit Kerja
+        id_jenis_unit:
+          type: integer
+          enum:
+                - 1
+                - 2
+                - 3
+                - 4
+                - 5
+                - 6
+                - 7
+                - 8
+          description: 1=Fakultas, 2=Jurusan, 3=Program Studi, 4=Laboratorium, 5=UPT, 6=Penyelenggara MKU, 7=Rektorat, 8=Unit Kerja
+          example: 1
+        status_unit:
+          type: string
+          description: A=Aktif, B=Alih Bentuk, K=Alih Kelola, N=Non Aktif, H=Dihapus
+          example: A
+        tanggal_berdiri:
+          type: string
+          description: Tanggal berdirinya unit
+          example: A
+        sk_penyelenggara:
+          type: string
+          description: Nomor SK berdirinya unit
+          example: Nomor SK berdirinya unit
+        tanggal_sk_penyelenggara:
+          type: string
+          description: Tanggal SK penyelenggara unit
+          example: A
+        terhitung_mulai_tanggal_penyelenggara:
+          type: string
+          description: Terhitung mulai tanggal penyelenggara unit
+          example: A
+        terhitung_sampai_tanggal_penyelenggara:
+          type: string
+          description: Terhitung sampai tanggal penyelenggara unit
+          example: A
+        sks_lulus:
+          type: integer
+          description: SKS Lulus
+          example: 144
+        gelar_lulusan:
+          type: string
+          description: Gelar perolehan lulusan
+          example: M.Eng
+        waktu_data_update:
+          type: string
+          description: Waktu Data Update
+          example: Waktu Data Update
+        wilayah:
+          type: array
+          items:
+            type: string
+          description: Wilayah
+          example: []
+        jurusan:
+          type: array
+          items:
+            type: string
+          description: Jurusan
+          example: []
     ReferensiMahasiswaResult:
       type: object
       properties:
@@ -6676,6 +7194,10 @@ components:
           type: string
           description: Nomor Induk Pegawai
           example: 190010101900101003
+        nuptk:
+          type: string
+          description: Nomor Unik Pendidik dan Tenaga Kependidikan
+          example: 238572673130039
         nama_status_aktif:
           type: string
           description: Status Aktif Dosen / Tenaga Kependidikan
@@ -7286,7 +7808,7 @@ components:
         id:
           type: string
           format: uuid
-          description: ID detasering         
+          description: ID detasering
         kategori_kegiatan:
           type: string
           description: Nama kategori kegiatan
@@ -7369,7 +7891,7 @@ components:
         id_perguruan_tinggi:
           type: string
           format: uuid
-          description: ID perguruan tinggi sasaran
+          description: ID perguruan tinggi sasaran atau ID SP Sasaran
           example: "828fb966-3733-430e-86ff-909b764e2523"
         tanggal_mulai:
           type: string
@@ -7463,7 +7985,7 @@ components:
             id_kategori_kegiatan:
               type: integer
               description: ID kategori kegiatan
-              example: 130301            
+              example: 130301
             kategori_kegiatan:
               type: string
               description: Nama kategori kegiatan
@@ -7790,11 +8312,13 @@ components:
           description: Data penulis SDM, dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
           items:
             type: object
+            required:
+              - id_sdm
             properties:
               id_sdm:
                 type: string
                 format: uuid
-                description: ID Dosen
+                description: ID Dosen, required,  dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
               no_urut:
                 type: integer
                 description: Urutan penulis
@@ -8272,7 +8796,7 @@ components:
       properties:
         id_kategori_kegiatan:
           type: integer
-          description: ID kategori kegiatan
+          description: ID kategori kegiatan, dapat dicari pada endpoint [/referensi/kategori_kegiatan](#get-/referensi/kategori_kegiatan)
           example: 120601
         judul:
           type: string
@@ -8287,7 +8811,7 @@ components:
         id_kelompok_bidang:
           type: string
           format: uuid
-          description: ID kelompok bidang litabmas
+          description: ID kelompok bidang litabmas, dapat dicari pada endpoint [/referensi/kelompok_bidang](#get-/referensi/kelompok_bidang)
           example: "5d35a79a-d98f-488b-aafc-0cf4c5ad1f99"
         id_litabmas_sebelumnya:
           type: string
@@ -8297,7 +8821,7 @@ components:
         id_jenis_skim:
           type: string
           format: uuid
-          description: ID skim kegiatan
+          description: ID skim kegiatan, dapat dicari pada endpoint [/referensi/skim_kegiatan](#get-/referensi/skim_kegiatan)
           example: "10bbc6bb-244b-4321-9cdb-3faab8e4c7f9"
         lokasi:
           type: string
@@ -8352,7 +8876,7 @@ components:
           example: "2019-01-01"
         mitra_litabmas:
           type: array
-          description: ID mitra litabmas (dunia usaha/industri)
+          description: ID mitra litabmas (dunia usaha/industri), dapat dicari pada endpoint [/referensi/dudi](#get-/referensi/dudi)
           example: []
           items:
             type: string
@@ -8362,11 +8886,13 @@ components:
           description: Data anggota SDM, dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
           items:
             type: object
+            required:
+              - id_sdm
             properties:
               id_sdm:
                 type: string
                 format: uuid
-                description: ID Dosen
+                description: ID Dosen, required, dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
               aktif:
                 type: boolean
                 description: Status aktif
@@ -8811,11 +9337,13 @@ components:
           description: Data penulis SDM, dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
           items:
             type: object
+            required:
+              - id_sdm
             properties:
               id_sdm:
                 type: string
                 format: uuid
-                description: ID Dosen
+                description: ID Dosen, required, dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
               no_urut:
                 type: integer
                 description: Urutan penulis
@@ -8934,7 +9462,7 @@ components:
             id_kategori_kegiatan:
               type: integer
               description: ID kategori kegiatan
-              example: 111201            
+              example: 111201
             kategori_kegiatan:
               type: string
               description: Nama kategori kegiatan
@@ -9516,11 +10044,13 @@ components:
           description: Data anggota SDM, dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
           items:
             type: object
+            required:
+              - id_sdm
             properties:
               id_sdm:
                 type: string
                 format: uuid
-                description: ID Dosen
+                description: ID Dosen, required, dapat dicari pada endpoint [/referensi/sdm](#get-/referensi/sdm)
               peran:
                 type: string
                 description: Peran dalam kegiatan
@@ -9547,18 +10077,34 @@ components:
           type: string
           description: Bidang Studi sertifikasi
           example: Gizi Masyarakat dan Sumber Daya Keluarga
-        tahun_sertifikasi:
-          type: integer
-          description: Tahun sertifikasi profesi
-          example: 2020
         sk_sertifikasi:
           type: string
           description: Nomor SK
           example: "91105111076"
+        id_lembaga_sertifikasi:
+          type: integer
+          description: ID Lembaga Sertifikasi
+          example: null
+        nama_lembaga_sertifikasi:
+          type: string
+          description: Nama Lembaga Sertifikasi
+          example: null
+        terhitung_mulai_tanggal:
+          type: string
+          description: Terhitung mulai tanggal sertifikasi
+          example: "2019-09-21"
+        terhitung_sampai_tanggal:
+          type: string
+          description: Terhitung sampai tanggal sertifikasi
+          example: "2023-09-21"
         nomor_registrasi:
           type: string
           description: Nomor Registrasi
           example: "20100200300610"
+        tahun_sertifikasi:
+          type: integer
+          description: Tahun diperolehnya sertifikasi
+          example: 2024
     SertifikasiProfesiGetDetail:
       allOf:
         - $ref: "#/components/schemas/SertifikasiProfesiGetItem"
@@ -9575,6 +10121,10 @@ components:
               type: integer
               description: ID Bidang Studi
               example: 99
+            dokumen:
+              type: array
+              items:
+                $ref: "#/components/schemas/DokumenDetail"
     SertifikasiProfesiPostBody:
       type: object
       required:
@@ -9583,6 +10133,8 @@ components:
         - id_bidang_studi
         - sk_sertifikasi
         - tahun_sertifikasi
+        - terhitung_mulai_tanggal
+        - terhitung_sampai_tanggal
       properties:
         id_sdm:
           type: string
@@ -9596,10 +10148,22 @@ components:
           type: integer
           description: ID Bidang Studi, dari [/referensi/bidang_studi](#get-/referensi/bidang_studi)
           example: 99
+        id_lembaga_sertifikasi:
+          type: integer
+          description: ID Lembaga Sertifikasi, dari [/referensi/lembaga_sertifikasi](#get-/referensi/lembaga_sertifikasi)
+          example: 0
         tahun_sertifikasi:
           type: integer
           description: Tahun sertifikasi profesi
           example: 2020
+        terhitung_mulai_tanggal:
+          type: string
+          description: Terhitung Mulai Tanggal Sertifikasi
+          example: "2019-01-01"
+        terhitung_sampai_tanggal:
+          type: string
+          description: Terhitung Sampai Tanggal Sertifikasi
+          example: "2023-01-01"
         sk_sertifikasi:
           type: string
           description: Nomor SK
@@ -9610,6 +10174,12 @@ components:
           description: Nomor Registrasi
           example: "20100200300610"
           maxLength: 14
+        dokumen:
+          type: array
+          description: ID dokumen pendukung
+          items:
+            type: string
+            format: uuid
     SertifikasiDosenGetItem:
       type: object
       properties:
@@ -9782,6 +10352,10 @@ components:
           type: integer
           description: Tahun lulus
           example: 2019
+        jenis_ajuan:
+          type: integer
+          description: Jenis Ajuan
+          example: Klaim
     PendidikanFormalGetDetail:
       allOf:
         - $ref: "#/components/schemas/PendidikanFormalGetItem"
@@ -9862,6 +10436,10 @@ components:
               description: Judul tesis/disertasi
               nullable: true
               example: "Characterisation of Oyster Allergens for Improved Diagnosis of Mollusc Allergy"
+            jenis_ajuan:
+              type: string
+              description: Jenis Ajuan
+              example: Klaim
             dokumen:
               type: array
               items:
@@ -11085,10 +11663,6 @@ components:
           format: date
           description: Tanggal lahir
           example: "1985-04-01"
-        nama_ibu_kandung:
-          type: string
-          description: Nama ibu kandung
-          example: SULISTIAWATI
     DataPribadiKependudukanGetDetail:
       type: object
       properties:
@@ -11356,6 +11930,10 @@ components:
           type: string
           description: Nomor induk dosen nasional
           example: "0014042001"
+        nuptk:
+          type: string
+          description: Nomor Unik Pendidik dan Tenaga Kependidikan
+          example: 238572673130039
     DataPribadiInterestGetDetail:
       type: array
       description: "Daftar bidang ilmu SDM"

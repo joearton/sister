@@ -1,9 +1,12 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 BASE_DIR     = os.path.dirname(__file__)
 CACHE_DIR    = os.path.join(BASE_DIR, '.cache')
 CONFIG_DIR   = os.path.join(BASE_DIR, 'config')
-CONFIG_FILE  = os.path.join(CONFIG_DIR, 'config.json')
 API_KEY_FILE = os.path.join(CACHE_DIR, 'api_key.json')
 
 
@@ -11,9 +14,36 @@ if not os.path.exists(CACHE_DIR):
     os.makedirs(CACHE_DIR)
 
 
-if not os.path.isfile(CONFIG_FILE):
-    print('Config file unavailable, create it in ', CONFIG_FILE)
-    os.abort()
+# Environment variable configuration
+def get_env_config():
+    """Get configuration from environment variables"""
+    config = {
+        'sister_url': os.getenv('SISTER_URL'),
+        'use_sandbox': os.getenv('USE_SANDBOX', 'true').lower() == 'true',
+        'username': os.getenv('SISTER_USERNAME'),
+        'password': os.getenv('SISTER_PASSWORD'),
+        'id_pengguna': os.getenv('SISTER_ID_PENGGUNA'),
+        'cache_expiration_days': int(os.getenv('CACHE_EXPIRATION_DAYS', '1')),
+        'auto_cleanup_cache': os.getenv('AUTO_CLEANUP_CACHE', 'false').lower() == 'true',
+        'api_timeout_seconds': int(os.getenv('API_TIMEOUT_SECONDS', '30')),
+        'max_retries': int(os.getenv('MAX_RETRIES', '3'))
+    }
+    
+    # Validate required environment variables
+    required_vars = ['sister_url', 'username', 'password', 'id_pengguna']
+    missing_vars = [var for var in required_vars if not config[var]]
+    
+    if missing_vars:
+        print(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
+        print("Please create a .env file with the required variables.")
+        print("You can copy env.example to .env and fill in your credentials.")
+        os.abort()
+    
+    return config
+
+
+# Load configuration
+ENV_CONFIG = get_env_config()
 
 
 STATUS_SUCCESS_WITH_REPLY   = 200

@@ -8,8 +8,15 @@ API_SPEC_FILE = os.path.join(CONFIG_DIR, 'api_spec.yaml')
 
 def get_specs():
     spec = None
-    with open(API_SPEC_FILE, 'r') as reader:
-        spec = yaml.safe_load(reader)
+    try:
+        with open(API_SPEC_FILE, 'r') as reader:
+            spec = yaml.safe_load(reader)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"API spec file not found: {API_SPEC_FILE}")
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(f"Error parsing API spec file: {e}")
+    except Exception as e:
+        raise Exception(f"Unexpected error reading API spec file: {e}")
     return spec
 
 
@@ -78,7 +85,10 @@ class SisterSpec(BaseSpec):
 
 
     def get_path_method_and_attr(self, path_name):
-        path_name, path_attr   = self.get_path(path_name)
+        path_result = self.get_path(path_name)
+        if not path_result:
+            raise ValueError(f"Path '{path_name}' not found in API specification")
+        path_name, path_attr = path_result
         path_method, path_attr = [[method, attr] for method, attr in path_attr.items()][0]
         return (path_method, path_attr)
 
